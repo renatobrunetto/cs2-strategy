@@ -324,33 +324,77 @@ function renderStep() {
   const state = stepStates[currentStep];
   if (!state) return;
 
-  state.players.forEach(p => {
+  // =======================
+  // PLAYERS
+  // =======================
+  state.players.forEach(player => {
     const el = document.createElement("div");
     el.className = "player";
-    el.style.left = `${p.x}px`;
-    el.style.top = `${p.y}px`;
-    makeDraggable(el, p);
+    el.style.left = `${player.x}px`;
+    el.style.top = `${player.y}px`;
+
+    // 🔥 REMOVER COM BOTÃO DIREITO
+    el.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      state.players = state.players.filter(p => p.id !== player.id);
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, player);
     mapContainer.appendChild(el);
   });
 
-  state.grenades.forEach(g => {
+  // =======================
+  // GRENADES
+  // =======================
+  state.grenades.forEach(grenade => {
     const el = document.createElement("div");
-    el.className = `grenade ${g.type}`;
-    el.style.left = `${g.x}px`;
-    el.style.top = `${g.y}px`;
-    makeDraggable(el, g);
+    el.className = `grenade ${grenade.type}`;
+    el.style.left = `${grenade.x}px`;
+    el.style.top = `${grenade.y}px`;
+
+    // 🔥 REMOVER COM BOTÃO DIREITO
+    el.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      state.grenades = state.grenades.filter(g => g.id !== grenade.id);
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, grenade);
     mapContainer.appendChild(el);
   });
 
+  // =======================
+  // BOMB
+  // =======================
   if (state.bomb) {
     const el = document.createElement("div");
     el.className = state.bomb.planted ? "bomb planted" : "bomb";
     el.style.left = `${state.bomb.x}px`;
     el.style.top = `${state.bomb.y}px`;
+
+    // 🔥 PLANTAR / DESPLANTAR (DUPLO CLIQUE)
+    el.addEventListener("dblclick", async () => {
+      state.bomb.planted = !state.bomb.planted;
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    // 🔥 REMOVER COM BOTÃO DIREITO
+    el.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      state.bomb = null;
+      renderStep();
+      await saveCurrentStep();
+    });
+
     makeDraggable(el, state.bomb);
     mapContainer.appendChild(el);
   }
 }
+
 
 // =======================
 // 🔹 DRAG
