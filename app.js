@@ -125,7 +125,7 @@ function loadSteps() {
 const mapContainer = document.getElementById("map-container");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 
-addPlayerBtn.onclick = () => {
+addPlayerBtn.onclick = async () => {
   if (!currentStrategyId) {
     alert("Selecione uma estratégia primeiro");
     return;
@@ -142,12 +142,13 @@ addPlayerBtn.onclick = () => {
     x: 50,
     y: 50
   };
-  
+
   stepStates[currentStep].players.push(playerData);
 
   renderStep();
   await saveCurrentStep();
 };
+
 
 function makeDraggable(el, playerData) {
   let offsetX = 0;
