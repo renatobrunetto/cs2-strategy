@@ -1,10 +1,4 @@
-// 🔹 IMPORTS (sempre no topo)
-import {
-  doc,
-  setDoc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+// 🔹 IMPORTS
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -12,27 +6,23 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
 import {
   getFirestore,
   collection,
   addDoc,
   query,
   where,
-  getDocs
+  getDocs,
+  doc,
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// 🔹 ESTADO GLOBAL
-let currentStrategyId = null;
-let currentStep = 1;
 
 // 🔹 FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAEX1MOFqLp1UDO8SfN4oMqDQx_8NhEH8w",
   authDomain: "cs2-strategy.firebaseapp.com",
   projectId: "cs2-strategy",
-  storageBucket: "cs2-strategy.firebasestorage.app",
-  messagingSenderId: "225150653706",
   appId: "1:225150653706:web:b6dbaf3fa480b8765fd6f3"
 };
 
@@ -42,19 +32,24 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// 🔹 GLOBAL STATE
+let currentStrategyId = null;
+let currentStep = 1;
+const stepStates = {};
 
 // 🔹 DOM
 const loginBtn = document.getElementById("loginBtn");
 const createBtn = document.getElementById("createStrategyBtn");
-const status = document.getElementById("status");
+const addPlayerBtn = document.getElementById("addPlayerBtn");
+const mapContainer = document.getElementById("map-container");
 const list = document.getElementById("strategyList");
+const status = document.getElementById("status");
 
-// 🔹 LOGIN
+// 🔹 AUTH
 loginBtn.onclick = async () => {
   await signInWithPopup(auth, provider);
 };
 
-// 🔹 AUTH STATE
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
@@ -71,12 +66,12 @@ onAuthStateChanged(auth, async (user) => {
 
   const snapshot = await getDocs(q);
 
-  snapshot.forEach((doc) => {
+  snapshot.forEach((docSnap) => {
     const li = document.createElement("li");
-    li.textContent = doc.data().name;
+    li.textContent = docSnap.data().name;
 
     li.onclick = async () => {
-      currentStrategyId = doc.id;
+      currentStrategyId = docSnap.id;
       currentStep = 1;
       await loadStepFromDB(1);
       loadSteps();
@@ -87,7 +82,6 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // 🔹 CREATE STRATEGY
-
 createBtn.onclick = async () => {
   const name = prompt("Nome da estratégia:");
   if (!name) return;
@@ -102,183 +96,54 @@ createBtn.onclick = async () => {
   alert("Estratégia criada! Recarregue a página.");
 };
 
-// 🔹 LOAD STEPS
-const stepStates = {};
+// 🔹 STEP HELPERS
+function ensureStepState(step) {
+  if (!stepStates[step]) {
+    stepStates[step] = { players: [], grenades: [] };
+  }
+  stepStates[step].players ||= [];
+  stepStates[step].grenades ||= [];
+}
+
+// 🔹 LOAD STEPS UI
 function loadSteps() {
-  const stepContainer = document.getElementById("stepButtons");
-  stepContainer.innerHTML = "";
+  const container = document.getElementById("stepButtons");
+  container.innerHTML = "";
 
   for (let i = 1; i <= 10; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
 
-  btn.onclick = async () => {
-   await saveCurrentStep();
-   currentStep = i;
-   await loadStepFromDB(i);
-  };
+    btn.onclick = async () => {
+      await saveCurrentStep();
+      currentStep = i;
+      await loadStepFromDB(i);
+    };
 
-    stepContainer.appendChild(btn);
+    container.appendChild(btn);
   }
 }
 
-const mapContainer = document.getElementById("map-container");
-const addPlayerBtn = document.getElementById("addPlayerBtn");
-
+// 🔹 ADD PLAYER
 addPlayerBtn.onclick = async () => {
   if (!currentStrategyId) {
-    alert("Selecione uma estratégia primeiro");
+    alert("Selecione uma estratégia");
     return;
   }
 
   ensureStepState(currentStep);
 
-  const id = `p${Date.now()}`;
-
-  const playerData = {
-    id,
-    x: 50,
-    y: 50
-  };
-
-  stepStates[currentStep].players.push(playerData);
+  stepStates[currentStep].players.push({
+    id: `p${Date.now()}`,
+    x: 60,
+    y: 60
+  });
 
   renderStep();
   await saveCurrentStep();
 };
 
-
-function makeDraggable(el, playerData) {
-  let offsetX = 0;
-  let offsetY = 0;
-  let dragging = false;
-
-  el.addEventListener("mousedown", (e) => {
-    dragging = true;
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
-    el.style.cursor = "grabbing";
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    if (!dragging) return;
-
-    const rect = mapContainer.getBoundingClientRect();
-    const x = e.clientX - rect.left - offsetX;
-    const y = e.clientY - rect.top - offsetY;
-
-    el.style.left = `${x}px`;
-    el.style.top = `${y}px`;
-
-    playerData.x = x;
-    playerData.y = y;
-  });
-
-  document.addEventListener("mouseup", () => {
-    dragging = false;
-    el.style.cursor = "grab";
-  });
-}
-
-
-function renderStep() {
-  // limpa mapa
-  mapContainer.querySelectorAll(".player").forEach(p => p.remove());
-
-  const state = stepStates[currentStep];
-  if (!state) return;
-  state.players ||= [];
-  state.grenades ||= [];
-
-state.players.forEach(player => {
-  const el = document.createElement("div");
-  el.className = "player";
-  el.style.left = `${player.x}px`;
-  el.style.top = `${player.y}px`;
-
-  // 🔥 REMOVER COM BOTÃO DIREITO
-  el.addEventListener("contextmenu", async (e) => {
-    e.preventDefault();
-    removePlayer(player.id);
-  });
-
-  makeDraggable(el, player);
-  mapContainer.appendChild(el);
-});
-// GRANADAS
-state.grenades?.forEach(grenade => {
-  const el = document.createElement("div");
-  el.className = `grenade ${grenade.type}`;
-  el.style.left = `${grenade.x}px`;
-  el.style.top = `${grenade.y}px`;
-
-  el.addEventListener("contextmenu", async (e) => {
-    e.preventDefault();
-    state.grenades = state.grenades.filter(g => g.id !== grenade.id);
-    renderStep();
-    await saveCurrentStep();
-  });
-
-  makeDraggable(el, grenade);
-  mapContainer.appendChild(el);
-});
-}
-
-async function saveCurrentStep() {
-  if (!currentStrategyId) return;
-
-  ensureStepState(currentStep);
-
-  const stepRef = doc(
-    db,
-    "strategies",
-    currentStrategyId,
-    "steps",
-    String(currentStep)
-  );
-
-  await setDoc(stepRef, {
-    stepNumber: currentStep,
-    state: stepStates[currentStep]
-  });
-}
-
-async function loadStepFromDB(step) {
-  if (!currentStrategyId) return;
-
-  const stepRef = doc(
-    db,
-    "strategies",
-    currentStrategyId,
-    "steps",
-    String(step)
-  );
-
-  const snapshot = await getDoc(stepRef);
-
-  if (snapshot.exists()) {
-    stepStates[step] = snapshot.data().state;
-  } else {
-    stepStates[step] = {};
-  }
-
-  ensureStepState(step);
-  renderStep();
-    
-}
-
-async function removePlayer(playerId) {
-  const state = stepStates[currentStep];
-  if (!state) return;
-
-  stepStates[currentStep].players = state.players.filter(
-    p => p.id !== playerId
-  );
-
-  renderStep();
-  await saveCurrentStep();
-}
-
+// 🔹 GRENADES
 document.querySelectorAll("#grenade-tools button")
   .forEach(btn => {
     btn.onclick = async () => {
@@ -289,30 +154,112 @@ document.querySelectorAll("#grenade-tools button")
 
       ensureStepState(currentStep);
 
-      const grenade = {
+      stepStates[currentStep].grenades.push({
         id: `g${Date.now()}`,
         type: btn.dataset.type,
-        x: 100,
-        y: 100
-      };
+        x: 120,
+        y: 120
+      });
 
-      stepStates[currentStep].grenades.push(grenade);
       renderStep();
       await saveCurrentStep();
     };
   });
 
-function ensureStepState(step) {
-  if (!stepStates[step]) {
-    stepStates[step] = { players: [], grenades: [] };
-    return;
-  }
+// 🔹 RENDER
+function renderStep() {
+  mapContainer.querySelectorAll(".player, .grenade").forEach(el => el.remove());
 
-  if (!stepStates[step].players) {
-    stepStates[step].players = [];
-  }
+  const state = stepStates[currentStep];
+  if (!state) return;
 
-  if (!stepStates[step].grenades) {
-    stepStates[step].grenades = [];
-  }
+  // PLAYERS
+  state.players.forEach(player => {
+    const el = document.createElement("div");
+    el.className = "player";
+    el.style.left = `${player.x}px`;
+    el.style.top = `${player.y}px`;
+
+    el.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      state.players = state.players.filter(p => p.id !== player.id);
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, player);
+    mapContainer.appendChild(el);
+  });
+
+  // GRENADES
+  state.grenades.forEach(grenade => {
+    const el = document.createElement("div");
+    el.className = `grenade ${grenade.type}`;
+    el.style.left = `${grenade.x}px`;
+    el.style.top = `${grenade.y}px`;
+
+    el.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      state.grenades = state.grenades.filter(g => g.id !== grenade.id);
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, grenade);
+    mapContainer.appendChild(el);
+  });
+}
+
+// 🔹 DRAG
+function makeDraggable(el, data) {
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  el.addEventListener("mousedown", (e) => {
+    dragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    el.style.cursor = "grabbing";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const rect = mapContainer.getBoundingClientRect();
+    data.x = e.clientX - rect.left - offsetX;
+    data.y = e.clientY - rect.top - offsetY;
+    el.style.left = `${data.x}px`;
+    el.style.top = `${data.y}px`;
+  });
+
+  document.addEventListener("mouseup", async () => {
+    if (!dragging) return;
+    dragging = false;
+    el.style.cursor = "grab";
+    await saveCurrentStep();
+  });
+}
+
+// 🔹 FIRESTORE
+async function saveCurrentStep() {
+  if (!currentStrategyId) return;
+
+  ensureStepState(currentStep);
+
+  await setDoc(
+    doc(db, "strategies", currentStrategyId, "steps", String(currentStep)),
+    {
+      stepNumber: currentStep,
+      state: stepStates[currentStep]
+    }
+  );
+}
+
+async function loadStepFromDB(step) {
+  const ref = doc(db, "strategies", currentStrategyId, "steps", String(step));
+  const snap = await getDoc(ref);
+
+  stepStates[step] = snap.exists() ? snap.data().state : {};
+  ensureStepState(step);
+  renderStep();
 }
