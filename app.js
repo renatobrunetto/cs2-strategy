@@ -40,8 +40,12 @@ const stepStates = {};
 // 🔹 DOM
 const loginBtn = document.getElementById("loginBtn");
 const createBtn = document.getElementById("createStrategyBtn");
+const deleteStrategyBtn = document.getElementById("deleteStrategyBtn");
+const newStrategyInput = document.getElementById("newStrategyName");
+
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const addBombBtn = document.getElementById("addBombBtn");
+
 const mapContainer = document.getElementById("map-container");
 const list = document.getElementById("strategyList");
 const status = document.getElementById("status");
@@ -58,11 +62,16 @@ onAuthStateChanged(auth, async (user) => {
   loginBtn.style.display = "none";
   createBtn.style.display = "inline-block";
 
+  loadStrategies(user.uid);
+});
+
+// 🔹 LOAD STRATEGIES
+async function loadStrategies(userId) {
   list.innerHTML = "";
 
   const q = query(
     collection(db, "strategies"),
-    where("ownerId", "==", user.uid)
+    where("ownerId", "==", userId)
   );
 
   const snapshot = await getDocs(q);
@@ -74,17 +83,25 @@ onAuthStateChanged(auth, async (user) => {
     li.onclick = async () => {
       currentStrategyId = docSnap.id;
       currentStep = 1;
+
+      document.querySelectorAll("#strategyList li")
+        .forEach(li => li.classList.remove("active"));
+
+      li.classList.add("active");
+      deleteStrategyBtn.style.display = "block";
+
       await loadStepFromDB(1);
       loadSteps();
+      highlightActiveStep();
     };
 
     list.appendChild(li);
   });
-});
+}
 
 // 🔹 CREATE STRATEGY
 createBtn.onclick = async () => {
-  const name = prompt("Nome da estratégia:");
+  const name = newStrategyInput.value.trim();
   if (!name) return;
 
   await addDoc(collection(db, "strategies"), {
@@ -94,15 +111,51 @@ createBtn.onclick = async () => {
     createdAt: new Date()
   });
 
-  alert("Estratégia criada! Recarregue a página.");
+  newStrategyInput.value = "";
+  await loadStrategies(auth.currentUser.uid);
 };
 
-// 🔹 STATE HELPER (PADRÃO PARA TUDO)
+// 🔹 DELETE STRATEGY
+deleteStrategyBtn.onclick = async () => {
+  if (!currentStrategyId) return;
+
+  const confirmDelete = confirm(
+    "Tem certeza que deseja excluir esta estratégia?\nEssa ação não pode ser desfeita."
+  );
+
+  if (!confirmDelete) return;
+
+  // Limpa passos (Firestore client limitation)
+  for (let i = 1; i <= 10; i++) {
+    await setDoc(
+      doc(db, "strategies", currentStrategyId, "steps", String(i)),
+      {},
+      { merge: false }
+    );
+  }
+
+  // Limpa strategy
+  await setDoc(
+    doc(db, "strategies", currentStrategyId),
+    {},
+    { merge: false }
+  );
+
+  currentStrategyId = null;
+  currentStep = 1;
+  deleteStrategyBtn.style.display = "none";
+
+  mapContainer.querySelectorAll(".player, .grenade, .bomb")
+    .forEach(el => el.remove());
+
+  await loadStrategies(auth.currentUser.uid);
+};
+
+// 🔹 STATE HELPER (PADRÃO GLOBAL)
 function ensureStepState(step) {
   if (!stepStates[step]) {
     stepStates[step] = {};
   }
-
   stepStates[step].players ||= [];
   stepStates[step].grenades ||= [];
   stepStates[step].bomb ||= null;
@@ -121,21 +174,27 @@ function loadSteps() {
       await saveCurrentStep();
       currentStep = i;
       await loadStepFromDB(i);
-      highlightActiveStep(); // 🔥
+      highlightActiveStep();
     };
 
     container.appendChild(btn);
   }
+}
 
-  highlightActiveStep(); // 🔥 ao carregar
+// 🔹 HIGHLIGHT STEP
+function highlightActiveStep() {
+  document.querySelectorAll("#stepButtons button")
+    .forEach(btn => {
+      btn.classList.toggle(
+        "active",
+        Number(btn.textContent) === currentStep
+      );
+    });
 }
 
 // 🔹 ADD PLAYER
 addPlayerBtn.onclick = async () => {
-  if (!currentStrategyId) {
-    alert("Selecione uma estratégia");
-    return;
-  }
+  if (!currentStrategyId) return;
 
   ensureStepState(currentStep);
 
@@ -151,23 +210,13 @@ addPlayerBtn.onclick = async () => {
 
 // 🔹 ADD BOMB
 addBombBtn.onclick = async () => {
-  if (!currentStrategyId) {
-    alert("Selecione uma estratégia");
-    return;
-  }
+  if (!currentStrategyId) return;
 
   ensureStepState(currentStep);
 
-  // Toggle bomba
-  if (stepStates[currentStep].bomb) {
-    stepStates[currentStep].bomb = null;
-  } else {
-    stepStates[currentStep].bomb = {
-      x: 200,
-      y: 200,
-      planted: false
-    };
-  }
+  stepStates[currentStep].bomb = stepStates[currentStep].bomb
+    ? null
+    : { x: 200, y: 200, planted: false };
 
   renderStep();
   await saveCurrentStep();
@@ -177,10 +226,7 @@ addBombBtn.onclick = async () => {
 document.querySelectorAll("#grenade-tools button")
   .forEach(btn => {
     btn.onclick = async () => {
-      if (!currentStrategyId) {
-        alert("Selecione uma estratégia");
-        return;
-      }
+      if (!currentStrategyId) return;
 
       ensureStepState(currentStep);
 
@@ -196,7 +242,7 @@ document.querySelectorAll("#grenade-tools button")
     };
   });
 
-// 🔹 RENDER (PADRÃO PARA TODOS OS ELEMENTOS)
+// 🔹 RENDER
 function renderStep() {
   mapContainer.querySelectorAll(".player, .grenade, .bomb")
     .forEach(el => el.remove());
@@ -240,22 +286,19 @@ function renderStep() {
     mapContainer.appendChild(el);
   });
 
-  // 💣 BOMB
+  // BOMB
   if (state.bomb) {
     const el = document.createElement("div");
-    el.className = "bomb";
+    el.className = state.bomb.planted ? "bomb planted" : "bomb";
     el.style.left = `${state.bomb.x}px`;
     el.style.top = `${state.bomb.y}px`;
-    el.style.opacity = state.bomb.planted ? "0.6" : "1";
 
-    // Plantar / desplantar
     el.addEventListener("dblclick", async () => {
       state.bomb.planted = !state.bomb.planted;
       renderStep();
       await saveCurrentStep();
     });
 
-    // Remover
     el.addEventListener("contextmenu", async (e) => {
       e.preventDefault();
       state.bomb = null;
@@ -301,7 +344,6 @@ function makeDraggable(el, data) {
 // 🔹 FIRESTORE
 async function saveCurrentStep() {
   if (!currentStrategyId) return;
-
   ensureStepState(currentStep);
 
   await setDoc(
@@ -320,12 +362,4 @@ async function loadStepFromDB(step) {
   stepStates[step] = snap.exists() ? snap.data().state : {};
   ensureStepState(step);
   renderStep();
-}
-
-function highlightActiveStep() {
-  document.querySelectorAll("#stepButtons button")
-    .forEach((btn) => {
-      const stepNumber = Number(btn.textContent);
-      btn.classList.toggle("active", stepNumber === currentStep);
-    });
 }
