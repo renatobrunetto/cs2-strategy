@@ -1,4 +1,10 @@
 // 🔹 IMPORTS (sempre no topo)
+import {
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -69,8 +75,10 @@ onAuthStateChanged(auth, async (user) => {
     const li = document.createElement("li");
     li.textContent = doc.data().name;
 
-    li.onclick = () => {
+    li.onclick = async () => {
       currentStrategyId = doc.id;
+      currentStep = 1;
+      await loadStepFromDB(1);
       loadSteps();
     };
 
@@ -104,10 +112,11 @@ function loadSteps() {
     const btn = document.createElement("button");
     btn.textContent = i;
 
-    btn.onclick = () => {
-      currentStep = i;
-      renderStep();
-    };
+  btn.onclick = async () => {
+   await saveCurrentStep();
+   currentStep = i;
+   await loadStepFromDB(i);
+  };
 
     stepContainer.appendChild(btn);
   }
@@ -133,10 +142,11 @@ addPlayerBtn.onclick = () => {
     x: 50,
     y: 50
   };
-
+  
   stepStates[currentStep].players.push(playerData);
 
   renderStep();
+  await saveCurrentStep();
 };
 
 function makeDraggable(el, playerData) {
@@ -189,4 +199,47 @@ function renderStep() {
     mapContainer.appendChild(el);
   });
 }
+
+async function saveCurrentStep() {
+  if (!currentStrategyId) return;
+
+  const state = stepStates[currentStep] || { players: [] };
+
+  const stepRef = doc(
+    db,
+    "strategies",
+    currentStrategyId,
+    "steps",
+    String(currentStep)
+  );
+
+  await setDoc(stepRef, {
+    stepNumber: currentStep,
+    state
+  });
+}
+
+async function loadStepFromDB(step) {
+  if (!currentStrategyId) return;
+
+  const stepRef = doc(
+    db,
+    "strategies",
+    currentStrategyId,
+    "steps",
+    String(step)
+  );
+
+  const snapshot = await getDoc(stepRef);
+
+  if (snapshot.exists()) {
+    stepStates[step] = snapshot.data().state;
+  } else {
+    stepStates[step] = { players: [] };
+  }
+
+  renderStep();
+}
+
+
 
