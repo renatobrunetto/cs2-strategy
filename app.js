@@ -106,7 +106,7 @@ function loadSteps() {
 
     btn.onclick = () => {
       currentStep = i;
-      alert(`Passo ${i} selecionado`);
+      renderStep();
     };
 
     stepContainer.appendChild(btn);
@@ -117,17 +117,29 @@ const mapContainer = document.getElementById("map-container");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 
 addPlayerBtn.onclick = () => {
-  const player = document.createElement("div");
-  player.className = "player";
+  if (!currentStrategyId) {
+    alert("Selecione uma estratégia primeiro");
+    return;
+  }
 
-  player.style.left = "50px";
-  player.style.top = "50px";
+  if (!stepStates[currentStep]) {
+    stepStates[currentStep] = { players: [] };
+  }
 
-  makeDraggable(player);
-  mapContainer.appendChild(player);
+  const id = `p${Date.now()}`;
+
+  const playerData = {
+    id,
+    x: 50,
+    y: 50
+  };
+
+  stepStates[currentStep].players.push(playerData);
+
+  renderStep();
 };
 
-function makeDraggable(el) {
+function makeDraggable(el, playerData) {
   let offsetX = 0;
   let offsetY = 0;
   let dragging = false;
@@ -143,8 +155,14 @@ function makeDraggable(el) {
     if (!dragging) return;
 
     const rect = mapContainer.getBoundingClientRect();
-    el.style.left = `${e.clientX - rect.left - offsetX}px`;
-    el.style.top = `${e.clientY - rect.top - offsetY}px`;
+    const x = e.clientX - rect.left - offsetX;
+    const y = e.clientY - rect.top - offsetY;
+
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+
+    playerData.x = x;
+    playerData.y = y;
   });
 
   document.addEventListener("mouseup", () => {
@@ -152,3 +170,23 @@ function makeDraggable(el) {
     el.style.cursor = "grab";
   });
 }
+
+
+function renderStep() {
+  // limpa mapa
+  mapContainer.querySelectorAll(".player").forEach(p => p.remove());
+
+  const state = stepStates[currentStep];
+  if (!state) return;
+
+  state.players.forEach(player => {
+    const el = document.createElement("div");
+    el.className = "player";
+    el.style.left = `${player.x}px`;
+    el.style.top = `${player.y}px`;
+
+    makeDraggable(el, player);
+    mapContainer.appendChild(el);
+  });
+}
+
