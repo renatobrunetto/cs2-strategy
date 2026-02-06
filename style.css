@@ -48,3 +48,16 @@ main {
   border-radius: 50%;
   cursor: grab;
 }
+
+.grenade {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: grab;
+}
+
+.grenade.smoke { background: #9e9e9e; }
+.grenade.flash { background: #fdd835; }
+.grenade.molotov { background: #ff7043; }
+.grenade.he { background: #66bb6a; }
