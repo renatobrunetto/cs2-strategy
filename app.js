@@ -41,7 +41,6 @@ const provider = new GoogleAuthProvider();
 // =======================
 let currentUserId = null;
 let currentStrategyId = null;
-let currentStrategyOwner = null;
 let currentStep = 1;
 
 const stepStates = {};
@@ -54,12 +53,10 @@ const status = document.getElementById("status");
 
 const newStrategyInput = document.getElementById("newStrategyName");
 const createStrategyBtn = document.getElementById("createStrategyBtn");
-const deleteStrategyBtn = document.getElementById("deleteStrategyBtn");
-const publicToggle = document.getElementById("publicToggle");
-const publicCheckbox = document.getElementById("isPublicCheckbox");
 
-const myStrategyList = document.getElementById("myStrategyList");
-const publicStrategyList = document.getElementById("publicStrategyList");
+const myPrivateList = document.getElementById("myPrivateStrategyList");
+const myPublicList = document.getElementById("myPublicStrategyList");
+const publicList = document.getElementById("publicStrategyList");
 
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const addBombBtn = document.getElementById("addBombBtn");
@@ -72,45 +69,7 @@ const mapContainer = document.getElementById("map-container");
 loginBtn.onclick = async () => {
   await signInWithPopup(auth, provider);
 };
-function setActiveStrategy(docSnap, isMine) {
-  currentStrategyId = docSnap.id;
-  currentStrategyOwner = docSnap.data().ownerId;
-  currentStep = 1;
 
-  // Highlight visual
-  document.querySelectorAll(".strategy-card")
-    .forEach(card => card.classList.remove("active"));
-
-  const card = document.querySelector(
-    `.strategy-card[data-id="${docSnap.id}"]`
-  );
-  if (card) card.classList.add("active");
-
-  // Painel de detalhes
-  const details = document.getElementById("strategyDetails");
-  const title = document.getElementById("strategyTitle");
-  const meta = document.getElementById("strategyMeta");
-
-  details.style.display = "block";
-  title.textContent = docSnap.data().name;
-
-  meta.textContent = docSnap.data().isPublic
-    ? "Pública"
-    : "Privada";
-
-  // Toggle público
-  publicToggle.style.display = isMine ? "block" : "none";
-  publicCheckbox.disabled = !isMine;
-  publicCheckbox.checked = docSnap.data().isPublic;
-
-  // Excluir
-  deleteStrategyBtn.style.display = isMine ? "block" : "none";
-
-  // Carrega editor
-  loadStepFromDB(1);
-  loadSteps();
-  highlightActiveStep();
-}
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
@@ -122,11 +81,12 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // =======================
-// 🔹 STRATEGIES (PUBLIC / PRIVATE)
+// 🔹 LOAD STRATEGIES
 // =======================
 async function loadStrategies() {
-  myStrategyList.innerHTML = "";
-  publicStrategyList.innerHTML = "";
+  myPrivateList.innerHTML = "";
+  myPublicList.innerHTML = "";
+  publicList.innerHTML = "";
 
   const myQuery = query(
     collection(db, "strategies"),
@@ -141,7 +101,10 @@ async function loadStrategies() {
   const mySnap = await getDocs(myQuery);
   const pubSnap = await getDocs(publicQuery);
 
-  mySnap.forEach(docSnap => renderStrategy(docSnap, true));
+  mySnap.forEach(docSnap => {
+    renderStrategy(docSnap, true);
+  });
+
   pubSnap.forEach(docSnap => {
     if (docSnap.data().ownerId !== currentUserId) {
       renderStrategy(docSnap, false);
@@ -149,35 +112,101 @@ async function loadStrategies() {
   });
 }
 
+// =======================
+// 🔹 RENDER STRATEGY CARD
+// =======================
 function renderStrategy(docSnap, isMine) {
+  const data = docSnap.data();
+
   const card = document.createElement("div");
   card.className = "strategy-card";
   card.dataset.id = docSnap.id;
 
-  const title = document.createElement("div");
-  title.className = "title";
-  title.textContent = docSnap.data().name;
+  const info = document.createElement("div");
+  info.className = "strategy-info";
 
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  meta.textContent = docSnap.data().isPublic
-    ? "Pública"
-    : "Privada";
+  const icon = document.createElement("span");
+  icon.className = "strategy-icon";
+  icon.textContent = data.isPublic ? "👁️" : "🔒";
 
-  card.appendChild(title);
-  card.appendChild(meta);
+  const name = document.createElement("span");
+  name.className = "strategy-name";
+  name.textContent = data.name;
 
-  card.onclick = () => {
-    setActiveStrategy(docSnap, isMine);
+  info.appendChild(icon);
+  info.appendChild(name);
+
+  const actions = document.createElement("div");
+  actions.className = "strategy-actions";
+
+  // Toggle public/private
+  if (isMine) {
+    const toggleBtn = document.createElement("button");
+    toggleBtn.textContent = "🔁";
+    toggleBtn.title = "Alterar visibilidade";
+
+    toggleBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await updateDoc(
+        doc(db, "strategies", docSnap.id),
+        { isPublic: !data.isPublic }
+      );
+      loadStrategies();
+    };
+
+    actions.appendChild(toggleBtn);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.title = "Excluir estratégia";
+
+    deleteBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if (!confirm("Excluir esta estratégia?")) return;
+
+      await setDoc(
+        doc(db, "strategies", docSnap.id),
+        {},
+        { merge: false }
+      );
+
+      if (currentStrategyId === docSnap.id) {
+        currentStrategyId = null;
+        mapContainer.querySelectorAll(".player, .grenade, .bomb")
+          .forEach(el => el.remove());
+      }
+
+      loadStrategies();
+    };
+
+    actions.appendChild(deleteBtn);
+  }
+
+  card.appendChild(info);
+  card.appendChild(actions);
+
+  card.onclick = async () => {
+    currentStrategyId = docSnap.id;
+    currentStep = 1;
+
+    document.querySelectorAll(".strategy-card")
+      .forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+
+    await loadStepFromDB(1);
+    loadSteps();
+    highlightActiveStep();
   };
 
-  (isMine ? myStrategyList : publicStrategyList)
-    .appendChild(card);
+  if (isMine) {
+    (data.isPublic ? myPublicList : myPrivateList).appendChild(card);
+  } else {
+    publicList.appendChild(card);
+  }
 }
 
-
 // =======================
-// 🔹 CREATE / DELETE / TOGGLE
+// 🔹 CREATE STRATEGY
 // =======================
 createStrategyBtn.onclick = async () => {
   const name = newStrategyInput.value.trim();
@@ -192,32 +221,6 @@ createStrategyBtn.onclick = async () => {
   });
 
   newStrategyInput.value = "";
-  loadStrategies();
-};
-
-publicCheckbox.onchange = async () => {
-  if (!currentStrategyId) return;
-  await updateDoc(
-    doc(db, "strategies", currentStrategyId),
-    { isPublic: publicCheckbox.checked }
-  );
-};
-
-deleteStrategyBtn.onclick = async () => {
-  if (!currentStrategyId) return;
-  if (!confirm("Excluir esta estratégia?")) return;
-
-  await setDoc(
-    doc(db, "strategies", currentStrategyId),
-    {},
-    { merge: false }
-  );
-
-  currentStrategyId = null;
-  deleteStrategyBtn.style.display = "none";
-  publicToggle.style.display = "none";
-  mapContainer.innerHTML = "";
-
   loadStrategies();
 };
 
@@ -312,7 +315,7 @@ document.querySelectorAll("#grenade-tools button")
   });
 
 // =======================
-// 🔹 RENDER
+// 🔹 RENDER STEP
 // =======================
 function renderStep() {
   mapContainer.querySelectorAll(".player, .grenade, .bomb")
@@ -321,7 +324,6 @@ function renderStep() {
   const state = stepStates[currentStep];
   if (!state) return;
 
-  // PLAYERS
   state.players.forEach(p => {
     const el = document.createElement("div");
     el.className = "player";
@@ -331,7 +333,6 @@ function renderStep() {
     mapContainer.appendChild(el);
   });
 
-  // GRENADES
   state.grenades.forEach(g => {
     const el = document.createElement("div");
     el.className = `grenade ${g.type}`;
@@ -341,7 +342,6 @@ function renderStep() {
     mapContainer.appendChild(el);
   });
 
-  // BOMB
   if (state.bomb) {
     const el = document.createElement("div");
     el.className = state.bomb.planted ? "bomb planted" : "bomb";
