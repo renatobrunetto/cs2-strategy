@@ -131,9 +131,7 @@ addPlayerBtn.onclick = async () => {
     return;
   }
 
-  if (!stepStates[currentStep]) {
-    stepStates[currentStep] = { players: [] };
-  }
+  ensureStepState(currentStep);
 
   const id = `p${Date.now()}`;
 
@@ -229,7 +227,7 @@ state.grenades?.forEach(grenade => {
 async function saveCurrentStep() {
   if (!currentStrategyId) return;
 
-  const state = stepStates[currentStep] || { players: [] };
+  ensureStepState(currentStep);
 
   const stepRef = doc(
     db,
@@ -241,7 +239,7 @@ async function saveCurrentStep() {
 
   await setDoc(stepRef, {
     stepNumber: currentStep,
-    state
+    state: stepStates[currentStep]
   });
 }
 
@@ -261,7 +259,7 @@ async function loadStepFromDB(step) {
   if (snapshot.exists()) {
     stepStates[step] = snapshot.data().state;
   } else {
-    stepStates[step] = { players: [], grenades: [] };
+    stepStates[step] = {};
   }
 
   ensureStepState(step);
