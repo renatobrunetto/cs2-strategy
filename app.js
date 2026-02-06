@@ -41,6 +41,7 @@ const stepStates = {};
 const loginBtn = document.getElementById("loginBtn");
 const createBtn = document.getElementById("createStrategyBtn");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
+const addBombBtn = document.getElementById("addBombBtn");
 const mapContainer = document.getElementById("map-container");
 const list = document.getElementById("strategyList");
 const status = document.getElementById("status");
@@ -96,13 +97,15 @@ createBtn.onclick = async () => {
   alert("Estratégia criada! Recarregue a página.");
 };
 
-// 🔹 STEP HELPERS
+// 🔹 STATE HELPER (PADRÃO PARA TUDO)
 function ensureStepState(step) {
   if (!stepStates[step]) {
-    stepStates[step] = { players: [], grenades: [] };
+    stepStates[step] = {};
   }
+
   stepStates[step].players ||= [];
   stepStates[step].grenades ||= [];
+  stepStates[step].bomb ||= null;
 }
 
 // 🔹 LOAD STEPS UI
@@ -143,6 +146,30 @@ addPlayerBtn.onclick = async () => {
   await saveCurrentStep();
 };
 
+// 🔹 ADD BOMB
+addBombBtn.onclick = async () => {
+  if (!currentStrategyId) {
+    alert("Selecione uma estratégia");
+    return;
+  }
+
+  ensureStepState(currentStep);
+
+  // Toggle bomba
+  if (stepStates[currentStep].bomb) {
+    stepStates[currentStep].bomb = null;
+  } else {
+    stepStates[currentStep].bomb = {
+      x: 200,
+      y: 200,
+      planted: false
+    };
+  }
+
+  renderStep();
+  await saveCurrentStep();
+};
+
 // 🔹 GRENADES
 document.querySelectorAll("#grenade-tools button")
   .forEach(btn => {
@@ -166,9 +193,10 @@ document.querySelectorAll("#grenade-tools button")
     };
   });
 
-// 🔹 RENDER
+// 🔹 RENDER (PADRÃO PARA TODOS OS ELEMENTOS)
 function renderStep() {
-  mapContainer.querySelectorAll(".player, .grenade").forEach(el => el.remove());
+  mapContainer.querySelectorAll(".player, .grenade, .bomb")
+    .forEach(el => el.remove());
 
   const state = stepStates[currentStep];
   if (!state) return;
@@ -208,9 +236,36 @@ function renderStep() {
     makeDraggable(el, grenade);
     mapContainer.appendChild(el);
   });
+
+  // 💣 BOMB
+  if (state.bomb) {
+    const el = document.createElement("div");
+    el.className = "bomb";
+    el.style.left = `${state.bomb.x}px`;
+    el.style.top = `${state.bomb.y}px`;
+    el.style.opacity = state.bomb.planted ? "0.6" : "1";
+
+    // Plantar / desplantar
+    el.addEventListener("dblclick", async () => {
+      state.bomb.planted = !state.bomb.planted;
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    // Remover
+    el.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      state.bomb = null;
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, state.bomb);
+    mapContainer.appendChild(el);
+  }
 }
 
-// 🔹 DRAG
+// 🔹 DRAG (COMPARTILHADO)
 function makeDraggable(el, data) {
   let dragging = false;
   let offsetX = 0;
