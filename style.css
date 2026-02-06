@@ -40,3 +40,11 @@ main {
   margin-right: 5px;
   padding: 5px 10px;
 }
+.player {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: red;
+  border-radius: 50%;
+  cursor: grab;
+}
