@@ -15,27 +15,28 @@
 
   <main>
 
-    <section id="strategies">
-  <div id="create-strategy">
-    <input 
-      type="text" 
-      id="newStrategyName" 
-      placeholder="Nova estratégia..."
-    />
-    <button id="createStrategyBtn">Criar</button>
-  </div>
-
-  <ul id="strategyList"></ul>
-
-  <button 
-    id="deleteStrategyBtn" 
-    style="display:none"
-    class="danger"
-  >
-    Excluir estratégia
-  </button>
-</section>
-
+   <section id="strategies">
+    <div id="create-strategy">
+      <input id="newStrategyName" placeholder="Nova estratégia..." />
+      <button id="createStrategyBtn">Criar</button>
+    </div>
+  
+    <h4>Minhas Estratégias</h4>
+    <ul id="myStrategyList"></ul>
+  
+    <h4>Estratégias Públicas</h4>
+    <ul id="publicStrategyList"></ul>
+  
+    <button id="deleteStrategyBtn" class="danger" style="display:none">
+      Excluir Estratégia
+    </button>
+  
+    <label id="publicToggle" style="display:none">
+      <input type="checkbox" id="isPublicCheckbox" />
+      Estratégia pública
+    </label>
+  </section>
+    
     <section id="editor">
 
       <div id="tools">
