@@ -58,13 +58,18 @@ onAuthStateChanged(auth, async (user) => {
     where("ownerId", "==", user.uid)
   );
 
-  const snapshot = await getDocs(q);
-  snapshot.forEach((doc) => {
-    const li = document.createElement("li");
-    li.onclick = () => {
+const snapshot = await getDocs(q);
+
+snapshot.forEach((doc) => {
+  const li = document.createElement("li");
+  li.textContent = doc.data().name;
+
+  li.onclick = () => {
     currentStrategyId = doc.id;
     loadSteps();
-  });
+  };
+
+  list.appendChild(li);
 });
 
 createBtn.onclick = async () => {
