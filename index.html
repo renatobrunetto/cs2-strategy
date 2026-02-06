@@ -16,11 +16,25 @@
   <main>
 
     <section id="strategies">
-      <button id="createStrategyBtn" style="display:none">
-        Criar Estratégia
-      </button>
-      <ul id="strategyList"></ul>
-    </section>
+  <div id="create-strategy">
+    <input 
+      type="text" 
+      id="newStrategyName" 
+      placeholder="Nova estratégia..."
+    />
+    <button id="createStrategyBtn">Criar</button>
+  </div>
+
+  <ul id="strategyList"></ul>
+
+  <button 
+    id="deleteStrategyBtn" 
+    style="display:none"
+    class="danger"
+  >
+    Excluir estratégia
+  </button>
+</section>
 
     <section id="editor">
 
