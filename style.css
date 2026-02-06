@@ -1,63 +1,135 @@
+/* RESET BÁSICO */
 body {
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #fff;
   margin: 0;
-  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: #fff;
 }
 
+/* HEADER */
 header {
+  background: #1b1b1b;
+  padding: 10px 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 15px;
 }
 
-button {
-  padding: 8px 12px;
+header h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+#status {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* LAYOUT */
+main {
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+/* STRATEGIES */
+#strategies {
+  width: 220px;
+  background: #181818;
+  padding: 10px;
+  border-right: 1px solid #333;
+}
+
+#strategyList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+#strategyList li {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#strategyList li:hover {
+  background: #2a2a2a;
+}
+
+/* EDITOR */
+#editor {
+  flex: 1;
+  padding: 10px;
+}
+
+/* TOOLS */
+#tools {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#tools button {
+  padding: 6px 10px;
   cursor: pointer;
 }
 
+/* MAPA */
 #map-container {
   position: relative;
   width: 800px;
-  margin-top: 20px;
   border: 2px solid #333;
+  background: #000;
 }
 
 #map {
   width: 100%;
   display: block;
+  user-select: none;
+  pointer-events: none;
 }
-main {
-  max-width: 1000px;
-  margin: auto;
-}
+
+/* PASSOS */
 #steps {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 #stepButtons button {
   margin-right: 5px;
-  padding: 5px 10px;
+  padding: 4px 8px;
 }
-.player {
+
+/* ELEMENTOS DO MAPA */
+.player,
+.grenade,
+.bomb {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background: red;
-  border-radius: 50%;
   cursor: grab;
 }
 
+/* PLAYER */
+.player {
+  width: 20px;
+  height: 20px;
+  background: #e53935;
+  border-radius: 50%;
+}
+
+/* GRANADAS */
 .grenade {
-  position: absolute;
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  cursor: grab;
 }
 
 .grenade.smoke { background: #9e9e9e; }
 .grenade.flash { background: #fdd835; }
 .grenade.molotov { background: #ff7043; }
 .grenade.he { background: #66bb6a; }
+
+/* BOMBA */
+.bomb {
+  width: 22px;
+  height: 22px;
+  background: #ff1744;
+  border-radius: 4px;
+}
