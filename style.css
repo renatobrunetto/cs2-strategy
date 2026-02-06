@@ -194,3 +194,32 @@ main {
 .bomb.planted {
   opacity: 0.6;
 }
+
+/* PASSOS */
+#stepButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#stepButtons button {
+  padding: 4px 10px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 🔥 PASSO ATIVO */
+#stepButtons button.active {
+  background: #1e88e5;
+  border-color: #64b5f6;
+  font-weight: bold;
+}
+
+/* Hover */
+#stepButtons button:hover {
+  background: #3a3a3a;
+}
