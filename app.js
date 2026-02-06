@@ -189,6 +189,8 @@ function renderStep() {
 
   const state = stepStates[currentStep];
   if (!state) return;
+  state.players ||= [];
+  state.grenades ||= [];
 
 state.players.forEach(player => {
   const el = document.createElement("div");
@@ -259,10 +261,12 @@ async function loadStepFromDB(step) {
   if (snapshot.exists()) {
     stepStates[step] = snapshot.data().state;
   } else {
-    stepStates[step] = { players: [] };
+    stepStates[step] = { players: [], grenades: [] };
   }
 
+  ensureStepState(step);
   renderStep();
+    
 }
 
 async function removePlayer(playerId) {
@@ -285,9 +289,7 @@ document.querySelectorAll("#grenade-tools button")
         return;
       }
 
-      if (!stepStates[currentStep]) {
-        stepStates[currentStep] = { players: [], grenades: [] };
-      }
+      ensureStepState(currentStep);
 
       const grenade = {
         id: `g${Date.now()}`,
@@ -302,3 +304,17 @@ document.querySelectorAll("#grenade-tools button")
     };
   });
 
+function ensureStepState(step) {
+  if (!stepStates[step]) {
+    stepStates[step] = { players: [], grenades: [] };
+    return;
+  }
+
+  if (!stepStates[step].players) {
+    stepStates[step].players = [];
+  }
+
+  if (!stepStates[step].grenades) {
+    stepStates[step].grenades = [];
+  }
+}
