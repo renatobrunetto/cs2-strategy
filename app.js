@@ -205,6 +205,23 @@ state.players.forEach(player => {
   makeDraggable(el, player);
   mapContainer.appendChild(el);
 });
+// GRANADAS
+state.grenades?.forEach(grenade => {
+  const el = document.createElement("div");
+  el.className = `grenade ${grenade.type}`;
+  el.style.left = `${grenade.x}px`;
+  el.style.top = `${grenade.y}px`;
+
+  el.addEventListener("contextmenu", async (e) => {
+    e.preventDefault();
+    state.grenades = state.grenades.filter(g => g.id !== grenade.id);
+    renderStep();
+    await saveCurrentStep();
+  });
+
+  makeDraggable(el, grenade);
+  mapContainer.appendChild(el);
+});
 }
 
 async function saveCurrentStep() {
@@ -260,4 +277,28 @@ async function removePlayer(playerId) {
   await saveCurrentStep();
 }
 
+document.querySelectorAll("#grenade-tools button")
+  .forEach(btn => {
+    btn.onclick = async () => {
+      if (!currentStrategyId) {
+        alert("Selecione uma estratégia");
+        return;
+      }
+
+      if (!stepStates[currentStep]) {
+        stepStates[currentStep] = { players: [], grenades: [] };
+      }
+
+      const grenade = {
+        id: `g${Date.now()}`,
+        type: btn.dataset.type,
+        x: 100,
+        y: 100
+      };
+
+      stepStates[currentStep].grenades.push(grenade);
+      renderStep();
+      await saveCurrentStep();
+    };
+  });
 
