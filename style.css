@@ -1,3 +1,6 @@
+/* =========================
+   RESET / BASE
+========================= */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -5,6 +8,17 @@ body {
   color: #fff;
 }
 
+button {
+  cursor: pointer;
+}
+
+h1, h3, h4 {
+  margin: 0;
+}
+
+/* =========================
+   HEADER
+========================= */
 header {
   background: #1b1b1b;
   padding: 10px 20px;
@@ -13,12 +27,26 @@ header {
   gap: 15px;
 }
 
+header h1 {
+  font-size: 18px;
+}
+
+#status {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* =========================
+   LAYOUT
+========================= */
 main {
   display: flex;
   height: calc(100vh - 50px);
 }
 
-/* SIDEBAR */
+/* =========================
+   SIDEBAR / STRATEGIES
+========================= */
 #strategies {
   width: 260px;
   background: #181818;
@@ -42,11 +70,18 @@ main {
   border-radius: 4px;
 }
 
+/* TITLES */
+#strategies h4 {
+  margin: 10px 0 6px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* STRATEGY LIST */
 .strategy-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 10px;
 }
 
 /* STRATEGY CARD */
@@ -55,6 +90,11 @@ main {
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s, outline 0.2s;
+}
+
+.strategy-card:hover {
+  background: #262626;
 }
 
 .strategy-card.active {
@@ -63,6 +103,7 @@ main {
 
 .strategy-card .title {
   font-weight: bold;
+  font-size: 14px;
 }
 
 .strategy-card .meta {
@@ -70,13 +111,16 @@ main {
   opacity: 0.7;
 }
 
-/* EDITOR */
+/* =========================
+   EDITOR
+========================= */
 #editor {
   flex: 1;
   padding: 10px;
   overflow: auto;
 }
 
+/* STRATEGY DETAILS */
 #strategyDetails {
   background: #1e1e1e;
   padding: 10px;
@@ -84,41 +128,120 @@ main {
   margin-bottom: 10px;
 }
 
+#strategyDetails p {
+  margin: 4px 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* DANGER BUTTON */
 button.danger {
   background: #b71c1c;
   border: none;
   color: #fff;
   padding: 6px;
   border-radius: 4px;
-  cursor: pointer;
 }
 
-/* MAP */
+button.danger:hover {
+  background: #d32f2f;
+}
+
+/* =========================
+   TOOLS
+========================= */
+#tools {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#tools button {
+  padding: 6px 10px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+}
+
+#tools button:hover {
+  background: #3a3a3a;
+}
+
+/* =========================
+   MAP
+========================= */
 #map-container {
   position: relative;
   width: 1600px;
   max-width: 100%;
   border: 2px solid #333;
   background: #000;
+  overflow: hidden;
 }
 
 #map {
   width: 100%;
   display: block;
   pointer-events: none;
+  user-select: none;
 }
 
-/* ELEMENTOS */
+/* =========================
+   STEPS
+========================= */
+#steps {
+  margin-top: 10px;
+}
+
+#stepButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#stepButtons button {
+  padding: 4px 10px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+}
+
+#stepButtons button:hover {
+  background: #3a3a3a;
+}
+
+#stepButtons button.active {
+  background: #1e88e5;
+  border-color: #64b5f6;
+  font-weight: bold;
+}
+
+/* =========================
+   MAP ELEMENTS (COMMON)
+========================= */
+.player,
+.grenade,
+.bomb {
+  position: absolute;
+  cursor: grab;
+}
+
+/* =========================
+   PLAYER
+========================= */
 .player {
   width: 20px;
   height: 20px;
   background: #e53935;
   border-radius: 50%;
-  position: absolute;
 }
 
-/* GRANADAS */
-
+/* =========================
+   GRENADES (WITH ICONS)
+========================= */
 .grenade {
   width: 22px;
   height: 22px;
@@ -133,145 +256,58 @@ button.danger {
 /* Smoke */
 .grenade.smoke {
   background-image: url("data:image/svg+xml;utf8,\
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
-  <circle cx='12' cy='12' r='10' fill='%239e9e9e'/>\
-  <text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>S</text>\
-  </svg>");
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+<circle cx='12' cy='12' r='10' fill='%239e9e9e'/>\
+<text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>S</text>\
+</svg>");
 }
 
 /* Flash */
 .grenade.flash {
   background-image: url("data:image/svg+xml;utf8,\
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
-  <circle cx='12' cy='12' r='10' fill='%23fdd835'/>\
-  <text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>F</text>\
-  </svg>");
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+<circle cx='12' cy='12' r='10' fill='%23fdd835'/>\
+<text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>F</text>\
+</svg>");
 }
 
 /* Molotov */
 .grenade.molotov {
   background-image: url("data:image/svg+xml;utf8,\
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
-  <circle cx='12' cy='12' r='10' fill='%23ff7043'/>\
-  <text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>M</text>\
-  </svg>");
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+<circle cx='12' cy='12' r='10' fill='%23ff7043'/>\
+<text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>M</text>\
+</svg>");
 }
 
 /* HE */
 .grenade.he {
   background-image: url("data:image/svg+xml;utf8,\
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
-  <circle cx='12' cy='12' r='10' fill='%2366bb6a'/>\
-  <text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>H</text>\
-  </svg>");
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+<circle cx='12' cy='12' r='10' fill='%2366bb6a'/>\
+<text x='12' y='16' font-size='12' text-anchor='middle' fill='black'>H</text>\
+</svg>");
 }
 
-/* BOMBA */
+/* =========================
+   BOMB (C4 ICON)
+========================= */
 .bomb {
   width: 26px;
   height: 26px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  cursor: grab;
 
   background-image: url("data:image/svg+xml;utf8,\
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
-  <rect x='5' y='6' width='14' height='12' rx='2' fill='%23ff1744'/>\
-  <rect x='9' y='3' width='6' height='4' fill='black'/>\
-  <text x='12' y='18' font-size='8' text-anchor='middle' fill='white'>C4</text>\
-  </svg>");
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+<rect x='5' y='6' width='14' height='12' rx='2' fill='%23ff1744'/>\
+<rect x='9' y='3' width='6' height='4' fill='black'/>\
+<text x='12' y='18' font-size='8' text-anchor='middle' fill='white'>C4</text>\
+</svg>");
 }
 
+/* Bomb planted */
 .bomb.planted {
   opacity: 0.6;
-}
-
-/* PASSOS */
-#stepButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-#stepButtons button {
-  padding: 4px 10px;
-  background: #2a2a2a;
-  color: #fff;
-  border: 1px solid #444;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* 🔥 PASSO ATIVO */
-#stepButtons button.active {
-  background: #1e88e5;
-  border-color: #64b5f6;
-  font-weight: bold;
-}
-
-/* Hover */
-#stepButtons button:hover {
-  background: #3a3a3a;
-}
-/* CREATE STRATEGY */
-#create-strategy {
-  display: flex;
-  gap: 6px;
-}
-
-#create-strategy input {
-  flex: 1;
-  padding: 5px;
-  background: #222;
-  border: 1px solid #444;
-  color: #fff;
-  border-radius: 4px;
-}
-
-/* STRATEGY LIST */
-#strategyList li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* ACTIVE STRATEGY */
-#strategyList li.active {
-  background: #1e88e5;
-  font-weight: bold;
-}
-
-/* DELETE */
-button.danger {
-  margin-top: 10px;
-  background: #b71c1c;
-  border: none;
-  color: #fff;
-  padding: 6px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button.danger:hover {
-  background: #d32f2f;
-}
-
-#strategies h4 {
-  margin: 10px 0 5px;
-  font-size: 13px;
-  opacity: 0.8;
-}
-
-.strategy-public {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-left: 6px;
-}
-
-#publicToggle {
-  margin-top: 10px;
-  display: block;
-  font-size: 13px;
 }
