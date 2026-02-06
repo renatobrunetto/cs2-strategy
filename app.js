@@ -1,9 +1,13 @@
+let currentStrategyId = null;
+let currentStep = 1;
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged
+
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -57,8 +61,9 @@ onAuthStateChanged(auth, async (user) => {
   const snapshot = await getDocs(q);
   snapshot.forEach((doc) => {
     const li = document.createElement("li");
-    li.textContent = doc.data().name;
-    list.appendChild(li);
+    li.onclick = () => {
+    currentStrategyId = doc.id;
+    loadSteps();
   });
 });
 
@@ -74,4 +79,22 @@ createBtn.onclick = async () => {
   });
 
   alert("Estratégia criada! Recarregue a página.");
+async function loadSteps() {
+  const stepContainer = document.getElementById("stepButtons");
+  stepContainer.innerHTML = "";
+
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+
+    btn.onclick = async () => {
+      currentStep = i;
+      alert(`Passo ${i} selecionado`);
+    };
+
+    stepContainer.appendChild(btn);
+  }
+}
+
 };
+  
