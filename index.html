@@ -7,64 +7,77 @@
 </head>
 <body>
 
-  <header>
-    <h1>CS2 Strategy Builder</h1>
-    <button id="loginBtn">Login com Google</button>
-    <span id="status"></span>
-  </header>
+<header>
+  <h1>CS2 Strategy Builder</h1>
+  <button id="loginBtn">Login com Google</button>
+  <span id="status"></span>
+</header>
 
-  <main>
+<main>
 
-   <section id="strategies">
+  <!-- SIDEBAR -->
+  <aside id="strategies">
+
     <div id="create-strategy">
       <input id="newStrategyName" placeholder="Nova estratégia..." />
       <button id="createStrategyBtn">Criar</button>
     </div>
-  
+
     <h4>Minhas Estratégias</h4>
-    <ul id="myStrategyList"></ul>
-  
-    <h4>Estratégias Públicas</h4>
-    <ul id="publicStrategyList"></ul>
-  
-    <button id="deleteStrategyBtn" class="danger" style="display:none">
-      Excluir Estratégia
-    </button>
-  
-    <label id="publicToggle" style="display:none">
-      <input type="checkbox" id="isPublicCheckbox" />
-      Estratégia pública
-    </label>
+    <div id="myStrategyList" class="strategy-list"></div>
+
+    <h4>Explorar (Públicas)</h4>
+    <div id="publicStrategyList" class="strategy-list"></div>
+
+  </aside>
+
+  <!-- EDITOR -->
+  <section id="editor">
+
+    <!-- PAINEL DA ESTRATÉGIA ATIVA -->
+    <div id="strategyDetails" style="display:none">
+      <h3 id="strategyTitle"></h3>
+      <p id="strategyMeta"></p>
+
+      <label id="publicToggle">
+        <input type="checkbox" id="isPublicCheckbox" />
+        Estratégia pública
+      </label>
+
+      <button id="deleteStrategyBtn" class="danger">
+        Excluir estratégia
+      </button>
+    </div>
+
+    <!-- TOOLS -->
+    <div id="tools">
+      <button id="addPlayerBtn">Player</button>
+
+      <div id="grenade-tools">
+        <button data-type="smoke">Smoke</button>
+        <button data-type="flash">Flash</button>
+        <button data-type="molotov">Molotov</button>
+        <button data-type="he">HE</button>
+      </div>
+
+      <button id="addBombBtn">Bomba</button>
+    </div>
+
+    <!-- MAPA -->
+    <div id="map-container">
+      <img src="assets/dust2.png" id="map" />
+    </div>
+
+    <!-- PASSOS -->
+    <div id="steps">
+      <strong>Passos:</strong>
+      <div id="stepButtons"></div>
+    </div>
+
   </section>
-    
-    <section id="editor">
 
-      <div id="tools">
-        <button id="addPlayerBtn">Player</button>
+</main>
 
-        <div id="grenade-tools">
-          <button data-type="smoke">Smoke</button>
-          <button data-type="flash">Flash</button>
-          <button data-type="molotov">Molotov</button>
-          <button data-type="he">HE</button>
-        </div>
-
-        <button id="addBombBtn">Bomba</button>
-      </div>
-
-      <div id="map-container">
-        <img src="assets/dust2.png" id="map" />
-      </div>
-
-      <div id="steps">
-        <strong>Passos:</strong>
-        <div id="stepButtons"></div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <script type="module" src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
