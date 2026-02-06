@@ -190,15 +190,21 @@ function renderStep() {
   const state = stepStates[currentStep];
   if (!state) return;
 
-  state.players.forEach(player => {
-    const el = document.createElement("div");
-    el.className = "player";
-    el.style.left = `${player.x}px`;
-    el.style.top = `${player.y}px`;
+state.players.forEach(player => {
+  const el = document.createElement("div");
+  el.className = "player";
+  el.style.left = `${player.x}px`;
+  el.style.top = `${player.y}px`;
 
-    makeDraggable(el, player);
-    mapContainer.appendChild(el);
+  // 🔥 REMOVER COM BOTÃO DIREITO
+  el.addEventListener("contextmenu", async (e) => {
+    e.preventDefault();
+    removePlayer(player.id);
   });
+
+  makeDraggable(el, player);
+  mapContainer.appendChild(el);
+});
 }
 
 async function saveCurrentStep() {
@@ -242,5 +248,16 @@ async function loadStepFromDB(step) {
   renderStep();
 }
 
+async function removePlayer(playerId) {
+  const state = stepStates[currentStep];
+  if (!state) return;
+
+  stepStates[currentStep].players = state.players.filter(
+    p => p.id !== playerId
+  );
+
+  renderStep();
+  await saveCurrentStep();
+}
 
 
