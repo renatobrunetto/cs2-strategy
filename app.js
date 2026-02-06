@@ -6,6 +6,15 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyAEX1MOFqLp1UDO8SfN4oMqDQx_8NhEH8w",
   authDomain: "cs2-strategy.firebaseapp.com",
@@ -16,23 +25,53 @@ const firebaseConfig = {
   measurementId: "G-V7FZK2FX3J"
 };
 
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 const loginBtn = document.getElementById("loginBtn");
+const createBtn = document.getElementById("createStrategyBtn");
 const status = document.getElementById("status");
+const list = document.getElementById("strategyList");
 
-loginBtn.addEventListener("click", async () => {
+loginBtn.onclick = async () => {
   await signInWithPopup(auth, provider);
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  status.textContent = `logado como ${user.displayName}`;
+  loginBtn.style.display = "none";
+  createBtn.style.display = "inline-block";
+
+  list.innerHTML = "";
+
+  const q = query(
+    collection(db, "strategies"),
+    where("ownerId", "==", user.uid)
+  );
+
+  const snapshot = await getDocs(q);
+  snapshot.forEach((doc) => {
+    const li = document.createElement("li");
+    li.textContent = doc.data().name;
+    list.appendChild(li);
+  });
 });
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    status.textContent = `logado como ${user.displayName}`;
-    loginBtn.style.display = "none";
-  } else {
-    status.textContent = "não logado";
-    loginBtn.style.display = "inline-block";
-  }
-});
+createBtn.onclick = async () => {
+  const name = prompt("Nome da estratégia:");
+  if (!name) return;
+
+  await addDoc(collection(db, "strategies"), {
+    name,
+    map: "dust2",
+    ownerId: auth.currentUser.uid,
+    createdAt: new Date()
+  });
+
+  alert("Estratégia criada! Recarregue a página.");
+};
