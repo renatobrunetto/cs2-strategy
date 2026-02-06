@@ -109,3 +109,43 @@ function loadSteps() {
     stepContainer.appendChild(btn);
   }
 }
+
+const mapContainer = document.getElementById("map-container");
+const addPlayerBtn = document.getElementById("addPlayerBtn");
+
+addPlayerBtn.onclick = () => {
+  const player = document.createElement("div");
+  player.className = "player";
+
+  player.style.left = "50px";
+  player.style.top = "50px";
+
+  makeDraggable(player);
+  mapContainer.appendChild(player);
+};
+
+function makeDraggable(el) {
+  let offsetX = 0;
+  let offsetY = 0;
+  let dragging = false;
+
+  el.addEventListener("mousedown", (e) => {
+    dragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    el.style.cursor = "grabbing";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+
+    const rect = mapContainer.getBoundingClientRect();
+    el.style.left = `${e.clientX - rect.left - offsetX}px`;
+    el.style.top = `${e.clientY - rect.top - offsetY}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    dragging = false;
+    el.style.cursor = "grab";
+  });
+}
