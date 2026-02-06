@@ -6,37 +6,50 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <header>
     <h1>CS2 Strategy Builder</h1>
     <button id="loginBtn">Login com Google</button>
+    <span id="status"></span>
   </header>
 
-<main>
-  <p>Status: <span id="status">não logado</span></p>
+  <main>
 
-  <button id="createStrategyBtn" style="display:none">
-    Criar Estratégia
-  </button>
+    <section id="strategies">
+      <button id="createStrategyBtn" style="display:none">
+        Criar Estratégia
+      </button>
+      <ul id="strategyList"></ul>
+    </section>
 
-  <ul id="strategyList"></ul>
+    <section id="editor">
 
-  <button id="addPlayerBtn">Adicionar Player</button>
-  <div id="grenade-tools">
-  <button data-type="smoke">Smoke</button>
-  <button data-type="flash">Flash</button>
-  <button data-type="molotov">Molotov</button>
-  <button data-type="he">HE</button>
-  </div>
+      <div id="tools">
+        <button id="addPlayerBtn">Player</button>
 
-  <div id="map-container">
-    <img src="assets/dust2.png" id="map" />
-  </div>
+        <div id="grenade-tools">
+          <button data-type="smoke">Smoke</button>
+          <button data-type="flash">Flash</button>
+          <button data-type="molotov">Molotov</button>
+          <button data-type="he">HE</button>
+        </div>
 
-  <div id="steps">
-    <strong>Passos:</strong>
-    <div id="stepButtons"></div>
-  </div>
-</main>
-  <script src="app.js" type="module"></script>
+        <button id="addBombBtn">Bomba</button>
+      </div>
+
+      <div id="map-container">
+        <img src="assets/dust2.png" id="map" />
+      </div>
+
+      <div id="steps">
+        <strong>Passos:</strong>
+        <div id="stepButtons"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
