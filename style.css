@@ -32,3 +32,11 @@ main {
   max-width: 1000px;
   margin: auto;
 }
+#steps {
+  margin-top: 15px;
+}
+
+#stepButtons button {
+  margin-right: 5px;
+  padding: 5px 10px;
+}
