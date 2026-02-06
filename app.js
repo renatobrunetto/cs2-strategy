@@ -121,10 +121,13 @@ function loadSteps() {
       await saveCurrentStep();
       currentStep = i;
       await loadStepFromDB(i);
+      highlightActiveStep(); // 🔥
     };
 
     container.appendChild(btn);
   }
+
+  highlightActiveStep(); // 🔥 ao carregar
 }
 
 // 🔹 ADD PLAYER
@@ -317,4 +320,12 @@ async function loadStepFromDB(step) {
   stepStates[step] = snap.exists() ? snap.data().state : {};
   ensureStepState(step);
   renderStep();
+}
+
+function highlightActiveStep() {
+  document.querySelectorAll("#stepButtons button")
+    .forEach((btn) => {
+      const stepNumber = Number(btn.textContent);
+      btn.classList.toggle("active", stepNumber === currentStep);
+    });
 }
