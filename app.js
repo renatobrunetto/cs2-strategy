@@ -36,6 +36,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+
 // 🔹 DOM
 const loginBtn = document.getElementById("loginBtn");
 const createBtn = document.getElementById("createStrategyBtn");
@@ -78,6 +79,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // 🔹 CREATE STRATEGY
+
 createBtn.onclick = async () => {
   const name = prompt("Nome da estratégia:");
   if (!name) return;
@@ -93,6 +95,7 @@ createBtn.onclick = async () => {
 };
 
 // 🔹 LOAD STEPS
+const stepStates = {};
 function loadSteps() {
   const stepContainer = document.getElementById("stepButtons");
   stepContainer.innerHTML = "";
