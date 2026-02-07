@@ -579,4 +579,20 @@ main {
   padding: 6px 10px;
   cursor: pointer;
 }
+.video-preview {
+  position: fixed;
+  background: #000;
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 9999;
+}
+
+.video-preview.hidden {
+  display: none;
+}
+
+.video-preview iframe {
+  display: block;
+  border-radius: 4px;
+}
 
