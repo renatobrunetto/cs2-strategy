@@ -371,4 +371,13 @@ button.primary {
   to { transform: rotate(360deg); }
 }
 
+.empty-state {
+  background: #1e1e1e;
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  opacity: 0.8;
+  text-align: center;
+}
+
 
