@@ -263,21 +263,26 @@ main {
 }
 
 /* =========================
-   MAP
+   MAP (PRODUCTIVITY CANVAS)
 ========================= */
 #map-container {
   position: relative;
-  max-width: 100%;
+  width: 100%;
+  max-width: 1200px;        /* 🔑 limite visual */
+  margin: 0 auto;          /* 🔑 centraliza */
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--border);
+  background: #000;
 }
 
 #map {
   display: block;
   width: 100%;
+  height: auto;
   pointer-events: none;
 }
+
 
 /* =========================
    MAP ELEMENTS
