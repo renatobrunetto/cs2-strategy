@@ -46,6 +46,7 @@ let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
+let previewHover = false;
 let previewLock = false;
 
 // =======================
@@ -466,7 +467,6 @@ async function loadStepFromDB(step) {
 // =======================
 // 🔹 VIDEO PREVIEW HOVER FIX
 // =======================
-let previewHover = false;
 
 const videoPreview = document.getElementById("video-preview");
 
