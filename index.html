@@ -7,11 +7,27 @@
 </head>
 <body>
 
-<header>
-  <h1>CS2 Strategy Builder</h1>
-  <button id="loginBtn">Login com Google</button>
-  <span id="status"></span>
-</header>
+<!-- LOGIN VIEW -->
+<div id="login-view" class="centered">
+  <div class="login-card">
+    <h1>CS2 Strategy Builder</h1>
+    <p>Crie e compartilhe estratégias táticas</p>
+    <button id="loginBtn" class="primary">Login com Google</button>
+  </div>
+</div>
+
+<!-- APP VIEW -->
+<div id="app-view" style="display:none">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="logo">CS2 Strategy Builder</div>
+
+    <div class="user-menu">
+      <span id="userName"></span>
+      <button id="logoutBtn">Sair</button>
+    </div>
+  </header>
 
 <main>
 
