@@ -244,21 +244,27 @@ function renderStrategy(docSnap, isMine) {
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
     currentStep = 1;
-    // 🔥 RESET DE ESTADO
+  
+    // 🔥 RESET TOTAL DE ESTADO
     Object.keys(stepStates).forEach(k => delete stepStates[k]);
-
+  
+    // 🔥 UI
     showEditor();
-
+  
     document.querySelectorAll(".strategy-card")
       .forEach(c => c.classList.remove("active"));
     card.classList.add("active");
-
+  
+    // 🔥 PASSOS PRIMEIRO
+    loadSteps();
+    highlightActiveStep();
+  
+    // 🔥 AGORA CARREGA O STEP
     showLoader();
     await loadStepFromDB(1);
     hideLoader();
-    loadSteps();
-    highlightActiveStep();
   };
+
 
   if (isMine) {
     (data.isPublic ? myPublicList : myPrivateList).appendChild(card);
