@@ -247,6 +247,7 @@ main {
   position: absolute;
   bottom: 120%;
   right: 0;
+  z-index: 10000;
 
   padding: 4px 6px;
   background: #000;
@@ -596,4 +597,9 @@ main {
   border-radius: 4px;
 }
 .grenade.has-video::after { content: "▶"; }
+
+.strategy-card,
+.strategy-actions {
+  overflow: visible;
+}
 
