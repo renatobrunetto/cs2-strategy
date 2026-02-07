@@ -46,7 +46,6 @@ let currentStep = 1;
 const stepStates = {};
 
 // SNAP CONFIG
-const SNAP_SIZE = 10;
 const SNAP_THRESHOLD = 6;
 
 // =======================
@@ -429,15 +428,14 @@ function makeDraggable(el, data) {
     let x = e.clientX - rect.left - ox;
     let y = e.clientY - rect.top - oy;
 
+    // 🔒 limites do mapa
     const maxX = rect.width - el.offsetWidth;
     const maxY = rect.height - el.offsetHeight;
 
     x = Math.max(0, Math.min(x, maxX));
     y = Math.max(0, Math.min(y, maxY));
 
-    x = Math.round(x / SNAP_SIZE) * SNAP_SIZE;
-    y = Math.round(y / SNAP_SIZE) * SNAP_SIZE;
-
+    // 🎯 snap suave ao centro (opcional)
     const centerX = (rect.width - el.offsetWidth) / 2;
     const centerY = (rect.height - el.offsetHeight) / 2;
 
