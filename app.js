@@ -45,9 +45,10 @@ let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
-// VIDEO HOVER STATE
-let hoverGrenade = false;
-let hoverPreview = false;
+let draggingEl = null;
+let draggingData = null;
+let offsetX = 0;
+let offsetY = 0;
 
 // =======================
 // 🔹 DOM
@@ -72,14 +73,6 @@ const editorContent = document.getElementById("editor-content");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
 
-const mapImg = document.getElementById("map");
-mapImg.onload = () => {
-  mapContainer.style.height = `${mapImg.offsetHeight}px`;
-};
-// VIDEO PREVIEW
-const videoPreview = document.getElementById("video-preview");
-const videoFrame = document.getElementById("video-frame");
-
 // =======================
 // 🔹 AUTH
 // =======================
@@ -95,7 +88,7 @@ logoutBtn.onclick = async () => {
   hideLoader();
 };
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     loginView.style.display = "flex";
     appView.style.display = "none";
@@ -123,23 +116,18 @@ async function loadStrategies() {
   myPublicList.innerHTML = "";
   publicList.innerHTML = "";
 
-  const myQuery = query(
-    collection(db, "strategies"),
-    where("ownerId", "==", currentUserId)
+  const mySnap = await getDocs(
+    query(collection(db, "strategies"), where("ownerId", "==", currentUserId))
   );
 
-  const publicQuery = query(
-    collection(db, "strategies"),
-    where("isPublic", "==", true)
+  const pubSnap = await getDocs(
+    query(collection(db, "strategies"), where("isPublic", "==", true))
   );
 
-  const mySnap = await getDocs(myQuery);
-  const pubSnap = await getDocs(publicQuery);
-
-  mySnap.forEach(d => renderStrategy(d, true));
-  pubSnap.forEach(d => {
-    if (d.data().ownerId !== currentUserId) {
-      renderStrategy(d, false);
+  mySnap.forEach(docSnap => renderStrategy(docSnap, true));
+  pubSnap.forEach(docSnap => {
+    if (docSnap.data().ownerId !== currentUserId) {
+      renderStrategy(docSnap, false);
     }
   });
 }
@@ -158,11 +146,10 @@ function renderStrategy(docSnap, isMine) {
   actions.className = "strategy-actions";
 
   if (isMine) {
-    const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = data.isPublic ? "🌐" : "🔒";
-    toggleBtn.dataset.tooltip = "Alterar visibilidade";
-
-    toggleBtn.onclick = async e => {
+    const toggle = document.createElement("button");
+    toggle.textContent = data.isPublic ? "🌐" : "🔒";
+    toggle.dataset.tooltip = "Alterar visibilidade";
+    toggle.onclick = async (e) => {
       e.stopPropagation();
       await updateDoc(doc(db, "strategies", docSnap.id), {
         isPublic: !data.isPublic
@@ -170,20 +157,19 @@ function renderStrategy(docSnap, isMine) {
       loadStrategies();
     };
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "🗑️";
-    deleteBtn.classList.add("delete");
-    deleteBtn.dataset.tooltip = "Excluir estratégia";
-
-    deleteBtn.onclick = async e => {
+    const del = document.createElement("button");
+    del.textContent = "🗑️";
+    del.classList.add("delete");
+    del.dataset.tooltip = "Excluir estratégia";
+    del.onclick = async (e) => {
       e.stopPropagation();
       if (!confirm("Excluir estratégia?")) return;
       await setDoc(doc(db, "strategies", docSnap.id), {}, { merge: false });
-      hideEditor();
+      if (currentStrategyId === docSnap.id) hideEditor();
       loadStrategies();
     };
 
-    actions.append(toggleBtn, deleteBtn);
+    actions.append(toggle, del);
   }
 
   card.append(info, actions);
@@ -193,24 +179,19 @@ function renderStrategy(docSnap, isMine) {
     currentStep = 1;
     Object.keys(stepStates).forEach(k => delete stepStates[k]);
 
-    document.querySelectorAll(".strategy-card")
-      .forEach(c => c.classList.remove("active"));
+    document.querySelectorAll(".strategy-card").forEach(c => c.classList.remove("active"));
     card.classList.add("active");
 
     showEditor();
     loadSteps();
     highlightActiveStep();
-
-    showLoader();
     await loadStepFromDB(1);
-    hideLoader();
   };
 
-  if (isMine) {
-    (data.isPublic ? myPublicList : myPrivateList).appendChild(card);
-  } else {
-    publicList.appendChild(card);
-  }
+  (isMine
+    ? data.isPublic ? myPublicList : myPrivateList
+    : publicList
+  ).appendChild(card);
 }
 
 // =======================
@@ -220,7 +201,6 @@ createStrategyBtn.onclick = async () => {
   const name = newStrategyInput.value.trim();
   if (!name) return;
 
-  showLoader();
   await addDoc(collection(db, "strategies"), {
     name,
     map: "dust2",
@@ -228,7 +208,6 @@ createStrategyBtn.onclick = async () => {
     isPublic: false,
     createdAt: new Date()
   });
-  hideLoader();
 
   newStrategyInput.value = "";
   loadStrategies();
@@ -251,56 +230,46 @@ function hideEditor() {
 // 🔹 STEPS
 // =======================
 function loadSteps() {
-  const container = document.getElementById("stepButtons");
-  container.innerHTML = "";
-
+  const c = document.getElementById("stepButtons");
+  c.innerHTML = "";
   for (let i = 1; i <= 10; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-
-    btn.onclick = async () => {
+    const b = document.createElement("button");
+    b.textContent = i;
+    b.onclick = async () => {
       await saveCurrentStep();
       currentStep = i;
       await loadStepFromDB(i);
       highlightActiveStep();
     };
-
-    container.appendChild(btn);
+    c.appendChild(b);
   }
 }
 
 function highlightActiveStep() {
   document.querySelectorAll("#stepButtons button")
-    .forEach(btn =>
-      btn.classList.toggle("active", Number(btn.textContent) === currentStep)
-    );
+    .forEach(b => b.classList.toggle("active", Number(b.textContent) === currentStep));
 }
 
 // =======================
 // 🔹 STEP STATE
 // =======================
 function ensureStepState(step) {
-  if (!stepStates[step]) stepStates[step] = {};
-  stepStates[step].players ||= [];
-  stepStates[step].grenades ||= [];
-  stepStates[step].bomb ||= null;
+  if (!stepStates[step]) stepStates[step] = { players: [], grenades: [], bomb: null };
 }
 
 // =======================
-// 🔹 TOOLS
+// 🔹 ADD ELEMENTS
 // =======================
 addPlayerBtn.onclick = async () => {
   if (!currentStrategyId) return;
   ensureStepState(currentStep);
-
   stepStates[currentStep].players.push({
     id: `p${Date.now()}`,
     x: 100,
     y: 100
   });
-
   renderStep();
-  await saveCurrentStep();
+  saveCurrentStep();
 };
 
 document.querySelectorAll("[data-type]").forEach(btn => {
@@ -311,10 +280,9 @@ document.querySelectorAll("[data-type]").forEach(btn => {
     const type = btn.dataset.type;
 
     if (type === "bomb") {
-      stepStates[currentStep].bomb =
-        stepStates[currentStep].bomb
-          ? null
-          : { x: 200, y: 200, planted: false };
+      stepStates[currentStep].bomb = stepStates[currentStep].bomb
+        ? null
+        : { x: 200, y: 200, planted: false };
     } else {
       stepStates[currentStep].grenades.push({
         id: `g${Date.now()}`,
@@ -326,7 +294,7 @@ document.querySelectorAll("[data-type]").forEach(btn => {
     }
 
     renderStep();
-    await saveCurrentStep();
+    saveCurrentStep();
   };
 });
 
@@ -334,162 +302,100 @@ document.querySelectorAll("[data-type]").forEach(btn => {
 // 🔹 RENDER STEP
 // =======================
 function renderStep() {
-  mapContainer.querySelectorAll(".player, .grenade, .bomb")
-    .forEach(el => el.remove());
-
+  mapContainer.querySelectorAll(".player,.grenade,.bomb").forEach(e => e.remove());
   const state = stepStates[currentStep];
   if (!state) return;
 
-  // PLAYERS
-  state.players.forEach(player => {
-    const el = document.createElement("div");
-    el.className = "player";
-    el.style.left = `${player.x}px`;
-    el.style.top = `${player.y}px`;
+  state.players.forEach(p => createElement("player", p, state.players));
+  state.grenades.forEach(g => createElement(`grenade ${g.type}`, g, state.grenades, true));
+  if (state.bomb) createElement("bomb", state.bomb, null);
+}
 
-    el.addEventListener("contextmenu", async e => {
-      e.preventDefault();
-      state.players = state.players.filter(p => p.id !== player.id);
-      renderStep();
-      await saveCurrentStep();
-    });
+function createElement(cls, data, list, isGrenade = false) {
+  const el = document.createElement("div");
+  el.className = cls;
+  el.style.left = `${data.x}px`;
+  el.style.top = `${data.y}px`;
 
-    makeDraggable(el, player);
-    mapContainer.appendChild(el);
-  });
+  el.oncontextmenu = async e => {
+    e.preventDefault();
+    if (list) list.splice(list.indexOf(data), 1);
+    else stepStates[currentStep].bomb = null;
+    renderStep();
+    saveCurrentStep();
+  };
 
-  // GRENADES
-  state.grenades.forEach(grenade => {
-    const el = document.createElement("div");
-    el.className = `grenade ${grenade.type}`;
-    el.style.left = `${grenade.x}px`;
-    el.style.top = `${grenade.y}px`;
+  el.onmousedown = e => {
+    draggingEl = el;
+    draggingData = data;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+  };
 
-    if (grenade.youtubeId) {
-      el.addEventListener("mouseenter", () => {
-        hoverGrenade = true;
-        showVideoPreview(grenade.youtubeId, el);
-      });
-
-      el.addEventListener("mouseleave", () => {
-        hoverGrenade = false;
-        setTimeout(checkHidePreview, 150);
-      });
-    }
-
-    el.addEventListener("dblclick", e => {
-      e.stopPropagation();
-      openGrenadeEditor(grenade);
-    });
-
-    el.addEventListener("contextmenu", async e => {
-      e.preventDefault();
-      state.grenades = state.grenades.filter(g => g.id !== grenade.id);
-      renderStep();
-      await saveCurrentStep();
-    });
-
-    makeDraggable(el, grenade);
-    mapContainer.appendChild(el);
-  });
-
-  // BOMB
-  if (state.bomb) {
-    const el = document.createElement("div");
-    el.className = state.bomb.planted ? "bomb planted" : "bomb";
-    el.style.left = `${state.bomb.x}px`;
-    el.style.top = `${state.bomb.y}px`;
-
-    el.addEventListener("contextmenu", async e => {
-      e.preventDefault();
-      state.bomb = null;
-      renderStep();
-      await saveCurrentStep();
-    });
-
-    makeDraggable(el, state.bomb);
-    mapContainer.appendChild(el);
+  if (isGrenade && data.youtubeId) {
+    el.addEventListener("mouseenter", e => showVideoPreview(data.youtubeId, el));
+    el.addEventListener("mouseleave", scheduleHidePreview);
+    el.ondblclick = () => openGrenadeEditor(data);
   }
+
+  mapContainer.appendChild(el);
 }
 
 // =======================
-// 🔹 DRAG
+// 🔹 DRAG GLOBAL
 // =======================
-function makeDraggable(el, data) {
-  let dragging = false;
-  let ox = 0;
-  let oy = 0;
+document.addEventListener("mousemove", e => {
+  if (!draggingEl) return;
+  const r = mapContainer.getBoundingClientRect();
+  draggingData.x = Math.max(0, Math.min(e.clientX - r.left - offsetX, r.width));
+  draggingData.y = Math.max(0, Math.min(e.clientY - r.top - offsetY, r.height));
+  draggingEl.style.left = `${draggingData.x}px`;
+  draggingEl.style.top = `${draggingData.y}px`;
+});
 
-  el.addEventListener("mousedown", e => {
-    dragging = true;
-    ox = e.offsetX;
-    oy = e.offsetY;
-  });
-
-  document.addEventListener("mousemove", e => {
-    if (!dragging) return;
-    const rect = mapContainer.getBoundingClientRect();
-
-    let x = e.clientX - rect.left - ox;
-    let y = e.clientY - rect.top - oy;
-
-    x = Math.max(0, Math.min(x, rect.width - el.offsetWidth));
-    y = Math.max(0, Math.min(y, rect.height - el.offsetHeight));
-
-    data.x = x;
-    data.y = y;
-
-    el.style.left = `${x}px`;
-    el.style.top = `${y}px`;
-  });
-
-  document.addEventListener("mouseup", async () => {
-    if (!dragging) return;
-    dragging = false;
-    await saveCurrentStep();
-  });
-}
+document.addEventListener("mouseup", async () => {
+  if (!draggingEl) return;
+  draggingEl = null;
+  draggingData = null;
+  saveCurrentStep();
+});
 
 // =======================
 // 🔹 VIDEO PREVIEW
 // =======================
-videoPreview.addEventListener("mouseenter", () => {
-  hoverPreview = true;
-});
+let hideTimeout = null;
 
-videoPreview.addEventListener("mouseleave", () => {
-  hoverPreview = false;
-  setTimeout(checkHidePreview, 150);
-});
+function showVideoPreview(id, anchor) {
+  const p = document.getElementById("video-preview");
+  const f = document.getElementById("video-frame");
 
-function showVideoPreview(youtubeId, el) {
-  const rect = el.getBoundingClientRect();
-  videoFrame.src = `https://www.youtube.com/embed/${youtubeId}`;
-  videoPreview.style.left = `${rect.right + 12}px`;
-  videoPreview.style.top = `${rect.top}px`;
-  videoPreview.classList.remove("hidden");
+  const r = anchor.getBoundingClientRect();
+  p.style.left = `${r.right + 8}px`;
+  p.style.top = `${r.top}px`;
+
+  f.src = `https://www.youtube.com/embed/${id}`;
+  p.classList.remove("hidden");
+}
+
+function scheduleHidePreview() {
+  hideTimeout = setTimeout(hideVideoPreview, 200);
 }
 
 function hideVideoPreview() {
-  videoFrame.src = "";
-  videoPreview.classList.add("hidden");
-}
-
-function checkHidePreview() {
-  if (!hoverGrenade && !hoverPreview) {
-    hideVideoPreview();
-  }
+  const p = document.getElementById("video-preview");
+  const f = document.getElementById("video-frame");
+  f.src = "";
+  p.classList.add("hidden");
 }
 
 // =======================
-// 🔹 GRENADE EDITOR
+// 🔹 GRENADE MODAL
 // =======================
 function openGrenadeEditor(grenade) {
   const modal = document.getElementById("grenade-modal");
   if (!modal) return;
 
   const input = modal.querySelector("#grenadeVideoInput");
-
   input.value = grenade.youtubeId
     ? `https://www.youtube.com/watch?v=${grenade.youtubeId}`
     : "";
@@ -499,15 +405,14 @@ function openGrenadeEditor(grenade) {
   modal.querySelector("#saveGrenadeVideo").onclick = async () => {
     grenade.youtubeId = extractYoutubeId(input.value);
     modal.classList.remove("open");
-    await saveCurrentStep();
+    saveCurrentStep();
     renderStep();
   };
 
   modal.querySelector("#removeGrenadeVideo").onclick = async () => {
     grenade.youtubeId = null;
-    input.value = "";
     modal.classList.remove("open");
-    await saveCurrentStep();
+    saveCurrentStep();
     renderStep();
   };
 }
@@ -515,10 +420,10 @@ function openGrenadeEditor(grenade) {
 function extractYoutubeId(url) {
   try {
     const u = new URL(url);
-    if (u.searchParams.get("v")) return u.searchParams.get("v");
-    if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
-  } catch {}
-  return null;
+    return u.searchParams.get("v") || u.pathname.replace("/", "");
+  } catch {
+    return null;
+  }
 }
 
 // =======================
@@ -527,7 +432,6 @@ function extractYoutubeId(url) {
 async function saveCurrentStep() {
   if (!currentStrategyId) return;
   ensureStepState(currentStep);
-
   await setDoc(
     doc(db, "strategies", currentStrategyId, "steps", String(currentStep)),
     { stepNumber: currentStep, state: stepStates[currentStep] }
@@ -535,20 +439,20 @@ async function saveCurrentStep() {
 }
 
 async function loadStepFromDB(step) {
-  const ref = doc(db, "strategies", currentStrategyId, "steps", String(step));
-  const snap = await getDoc(ref);
+  const snap = await getDoc(
+    doc(db, "strategies", currentStrategyId, "steps", String(step))
+  );
   stepStates[step] = snap.exists() ? snap.data().state : {};
   ensureStepState(step);
   renderStep();
 }
 
 // =======================
-// 🔹 UI HELPERS
+// 🔹 UI
 // =======================
 function showLoader() {
   document.getElementById("loader").classList.remove("hidden");
 }
-
 function hideLoader() {
   document.getElementById("loader").classList.add("hidden");
 }
