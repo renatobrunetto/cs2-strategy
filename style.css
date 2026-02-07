@@ -168,8 +168,9 @@ main {
 
 .strategy-info {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 8px;
+  font-size: 13px;
 }
 
 .strategy-name {
@@ -189,6 +190,17 @@ main {
   opacity: 1;
 }
 
+.strategy-card.active .strategy-name {
+  font-weight: 600;
+}
+
+.strategy-card[data-public="true"] .strategy-name {
+  color: #e0e0e0;
+}
+
+.strategy-card[data-public="false"] .strategy-name {
+  color: var(--text-main);
+}
 .strategy-actions button {
   background: transparent;
   border: none;
