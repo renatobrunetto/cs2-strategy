@@ -263,17 +263,16 @@ main {
 }
 
 /* =========================
-   MAP (PRODUCTIVITY CANVAS)
+   MAP 
 ========================= */
 #map-container {
   position: relative;
-  width: 100%;
-  max-width: 1200px;        /* 🔑 limite visual */
-  margin: 0 auto;          /* 🔑 centraliza */
-  border-radius: 10px;
+  width: 1600px;          /* 🔑 tamanho fixo como antes */
+  max-width: 100%;
+  margin: 0;              /* 🔑 alinhado à esquerda */
+  line-height: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: #000;
+  background: black;
 }
 
 #map {
