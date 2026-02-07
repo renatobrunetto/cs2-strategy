@@ -244,3 +244,67 @@ main {
 .bomb.planted {
   opacity: 0.6;
 }
+
+/* RESET */
+* {
+  box-sizing: border-box;
+}
+
+/* LOGIN */
+.centered {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-card {
+  background: #1b1b1b;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  width: 320px;
+}
+
+.login-card h1 {
+  margin-bottom: 10px;
+}
+
+.login-card p {
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+button.primary {
+  background: #1e88e5;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* HEADER */
+.app-header {
+  height: 50px;
+  background: #181818;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #333;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#logoutBtn {
+  background: transparent;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
