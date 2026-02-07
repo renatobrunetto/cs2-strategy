@@ -306,11 +306,12 @@ main {
 }
 
 .cmd-btn {
-  padding: 2px 6px;
   background: transparent;
   border: none;
-  border-radius: 4px;
+  color: var(--text-main);
+  padding: 2px 6px;
   font-size: 13px;
+  border-radius: 4px;
 }
 
 .cmd-btn:hover {
@@ -327,9 +328,10 @@ main {
 ========================================================= */
 #map-container {
   position: relative;
+  width: 1600px;
   max-width: 100%;
-  overflow: hidden;
   line-height: 0;
+  overflow: hidden;
   background: black;
 }
 
