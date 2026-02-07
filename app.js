@@ -319,23 +319,40 @@ addBombBtn.onclick = async () => {
   await saveCurrentStep();
 };
 
-document.querySelectorAll("#grenade-tools button")
+document.querySelectorAll("[data-type]")
   .forEach(btn => {
     btn.onclick = async () => {
       if (!currentStrategyId) return;
-      ensureStepState(currentStep);
 
-      stepStates[currentStep].grenades.push({
-        id: `g${Date.now()}`,
-        type: btn.dataset.type,
-        x: 120,
-        y: 120
-      });
+      const type = btn.dataset.type;
+
+      // BOMBA
+      if (type === "bomb") {
+        ensureStepState(currentStep);
+
+        stepStates[currentStep].bomb =
+          stepStates[currentStep].bomb
+            ? null
+            : { x: 200, y: 200, planted: false };
+
+      } 
+      // GRANADAS
+      else {
+        ensureStepState(currentStep);
+
+        stepStates[currentStep].grenades.push({
+          id: `g${Date.now()}`,
+          type,
+          x: 120,
+          y: 120
+        });
+      }
 
       renderStep();
       await saveCurrentStep();
     };
   });
+
 
 // =======================
 // 🔹 RENDER STEP
