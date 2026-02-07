@@ -354,24 +354,14 @@ main {
 
 /* PLAYER */
 .player {
-  position: absolute;
-  width: 18px;
+  width: 24px;
   height: 24px;
-  background: #e53935;
-  border-radius: 4px;
-  z-index: 30;
-}
-
-/* Cabeça */
-.player::before {
-  content: "";
-  position: absolute;
-  top: -8px;
-  left: 3px;
-  width: 12px;
-  height: 12px;
-  background: #e53935;
-  border-radius: 50%;
+  background: no-repeat center / contain;
+  background-image: url("data:image/svg+xml;utf8,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
+      <circle cx='12' cy='7' r='4' fill='%23e53935'/>
+      <rect x='8' y='12' width='8' height='10' rx='3' fill='%23e53935'/>
+    </svg>");
 }
 
 
