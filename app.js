@@ -393,7 +393,6 @@ function makeDraggable(el, data) {
 // =======================
 // 🔹 VIDEO PREVIEW
 // =======================
-let previewHover = false;
 
 function showVideoPreview(youtubeId, x, y) {
   const preview = document.getElementById("video-preview");
