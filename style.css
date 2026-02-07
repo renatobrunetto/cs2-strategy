@@ -354,11 +354,26 @@ main {
 
 /* PLAYER */
 .player {
-  width: 20px;
-  height: 20px;
+  position: absolute;
+  width: 18px;
+  height: 24px;
+  background: #e53935;
+  border-radius: 4px;
+  z-index: 30;
+}
+
+/* Cabeça */
+.player::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
   background: #e53935;
   border-radius: 50%;
 }
+
 
 /* =========================
    GRENADES (BASE)
