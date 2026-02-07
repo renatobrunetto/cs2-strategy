@@ -1,6 +1,6 @@
-/* =========================================================
-   THEME VARIABLES
-========================================================= */
+/* =========================
+   VARIABLES (THEME)
+========================= */
 :root {
   --bg-main: #0f0f0f;
   --bg-panel: #151515;
@@ -13,17 +13,17 @@
   --danger: #e53935;
 }
 
-/* =========================================================
-   BASE / RESET
-========================================================= */
+/* =========================
+   RESET / BASE
+========================= */
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Arial, sans-serif;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Arial, sans-serif;
   font-size: 13px;
   background: var(--bg-main);
   color: var(--text-main);
@@ -38,9 +38,9 @@ button {
   cursor: pointer;
 }
 
-/* =========================================================
+/* =========================
    LOGIN
-========================================================= */
+========================= */
 .centered {
   height: 100vh;
   display: flex;
@@ -49,17 +49,20 @@ button {
 }
 
 .login-card {
-  width: 640px;
-  padding: 32px;
   background: var(--bg-panel);
+  padding: 32px;
   border-radius: 8px;
+  width: 640px;
   text-align: center;
 }
 
 .login-logo {
   width: 560px;
   max-width: 100%;
+  height: auto;
   margin-bottom: 16px;
+  display: block;
+  margin-inline: auto;
 }
 
 .login-card h1 {
@@ -69,30 +72,29 @@ button {
 }
 
 .login-card p {
-  margin-bottom: 20px;
   color: var(--text-muted);
+  margin-bottom: 20px;
 }
 
 button.primary {
-  padding: 8px 14px;
   background: var(--primary);
   border: none;
-  border-radius: 6px;
+  padding: 8px 14px;
   color: white;
+  border-radius: 6px;
 }
 
-/* =========================================================
+/* =========================
    HEADER
-========================================================= */
+========================= */
 .app-header {
   height: 90px;
-  padding: 0 16px;
   background: var(--bg-panel);
-  border-bottom: 1px solid #2a2a2a;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .header-left {
@@ -103,12 +105,12 @@ button.primary {
 
 .header-logo {
   height: 80px;
+  width: auto;
 }
 
 .logo-text {
-  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: 14px;
   opacity: 0.9;
 }
 
@@ -116,7 +118,6 @@ button.primary {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -126,22 +127,22 @@ button.primary {
   color: var(--text-muted);
 }
 
-/* =========================================================
+/* =========================
    LAYOUT
-========================================================= */
+========================= */
 main {
   display: flex;
   height: calc(100vh - 90px);
 }
 
-/* =========================================================
-   SIDEBAR / STRATEGIES
-========================================================= */
+/* =========================
+   SIDEBAR
+========================= */
 #strategies {
   width: 280px;
-  padding: 12px;
   background: var(--bg-panel);
   border-right: 1px solid #2a2a2a;
+  padding: 12px;
   overflow-y: auto;
 }
 
@@ -153,7 +154,7 @@ main {
   text-transform: uppercase;
 }
 
-/* Create strategy */
+/* CREATE STRATEGY */
 #create-strategy {
   display: flex;
   gap: 6px;
@@ -169,32 +170,31 @@ main {
 }
 
 #create-strategy button {
-  padding: 6px 10px;
   background: var(--primary);
   border: none;
+  padding: 6px 10px;
 }
 
-/* Strategy list */
+/* STRATEGY LIST */
 .strategy-list {
   display: flex;
   flex-direction: column;
 }
 
 .strategy-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 6px 8px;
   border-left: 3px solid transparent;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
-.strategy-card:hover,
-.strategy-card.active {
+.strategy-card:hover {
   background: var(--bg-item);
 }
 
 .strategy-card.active {
+  background: var(--bg-item);
   border-left-color: var(--primary);
 }
 
@@ -203,16 +203,10 @@ main {
   font-weight: 500;
 }
 
-.strategy-card.active .strategy-info {
-  font-weight: 600;
-}
-
-/* Actions */
 .strategy-actions {
   display: flex;
   gap: 6px;
   opacity: 0.6;
-  transition: opacity 0.15s ease;
 }
 
 .strategy-card:hover .strategy-actions,
@@ -221,14 +215,13 @@ main {
 }
 
 .strategy-actions button {
-  position: relative;
-  padding: 4px 6px;
   background: transparent;
   border: none;
-  border-radius: 4px;
-  font-size: 12px;
   color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  position: relative;
 }
 
 .strategy-actions button:hover {
@@ -237,26 +230,25 @@ main {
 }
 
 .strategy-actions button.delete:hover {
-  background: rgba(229, 57, 53, 0.15);
+  background: rgba(229,57,53,0.15);
   color: var(--danger);
 }
 
-/* Tooltip */
+/* TOOLTIP */
 .strategy-actions button::after {
   content: attr(data-tooltip);
   position: absolute;
   bottom: 120%;
   right: 0;
-
-  padding: 4px 6px;
   background: #000;
   color: #fff;
   font-size: 11px;
+  padding: 4px 6px;
   border-radius: 4px;
-
+  white-space: nowrap;
   opacity: 0;
-  transform: translateY(4px);
   pointer-events: none;
+  transform: translateY(4px);
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
@@ -265,17 +257,9 @@ main {
   transform: translateY(0);
 }
 
-/* Empty state */
-.empty-state {
-  padding: 12px;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-/* =========================================================
+/* =========================
    EDITOR
-========================================================= */
+========================= */
 #editor {
   flex: 1;
   padding: 12px;
@@ -291,9 +275,9 @@ main {
   color: var(--text-muted);
 }
 
-/* =========================================================
+/* =========================
    COMMAND BAR
-========================================================= */
+========================= */
 .command-bar {
   display: flex;
   align-items: center;
@@ -309,8 +293,7 @@ main {
   background: transparent;
   border: none;
   color: var(--text-main);
-  padding: 2px 6px;
-  font-size: 13px;
+  padding: 4px 6px;
   border-radius: 4px;
 }
 
@@ -323,9 +306,9 @@ main {
   color: white;
 }
 
-/* =========================================================
+/* =========================
    MAP
-========================================================= */
+========================= */
 #map-container {
   position: relative;
   width: 1600px;
@@ -336,29 +319,29 @@ main {
 }
 
 #map {
-  width: 100%;
   display: block;
+  width: 100%;
   pointer-events: none;
 }
 
-/* Map elements */
+/* =========================
+   MAP ELEMENTS
+========================= */
 .player,
 .grenade,
 .bomb {
   position: absolute;
   cursor: grab;
+  user-select: none;
 }
 
-.player { z-index: 30; }
-.grenade { z-index: 40; }
-.bomb { z-index: 50; }
-
-/* Player */
+/* PLAYER */
 .player {
   width: 18px;
   height: 24px;
   background: #e53935;
   border-radius: 4px;
+  z-index: 30;
 }
 
 .player::before {
@@ -372,34 +355,112 @@ main {
   border-radius: 50%;
 }
 
-/* Grenades */
+/* =========================
+   GRENADES (BASE)
+========================= */
 .grenade {
-  width: 22px;
-  height: 22px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1px solid #555;
+  background: #bbb;
+  z-index: 40;
 }
 
-.grenade.smoke   { background: #9e9e9e; }
-.grenade.flash   { background: #fdd835; }
-.grenade.molotov { background: #ff7043; }
-.grenade.he      { background: #66bb6a; }
+.grenade::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
 
-/* Bomb */
+/* SMOKE */
+.grenade.smoke::after {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle,
+    rgba(180,180,180,0.45) 0%,
+    rgba(160,160,160,0.35) 40%,
+    rgba(120,120,120,0.15) 65%,
+    transparent 75%);
+  filter: blur(6px);
+}
+
+/* MOLOTOV */
+.grenade.molotov::after {
+  width: 110px;
+  height: 110px;
+  background: radial-gradient(circle,
+    rgba(255,120,0,0.6) 0%,
+    rgba(255,60,0,0.45) 30%,
+    rgba(180,0,0,0.25) 55%,
+    transparent 70%);
+  filter: blur(4px);
+  animation: fireFlicker 1.2s infinite alternate;
+}
+
+@keyframes fireFlicker {
+  from { transform: translate(-50%, -50%) scale(0.95); }
+  to   { transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* FLASH */
+.grenade.flash::after {
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle,
+    rgba(255,255,255,0.85) 0%,
+    rgba(255,255,255,0.45) 25%,
+    rgba(255,255,255,0.2) 45%,
+    transparent 60%);
+  filter: blur(2px);
+  animation: flashPulse 0.8s infinite;
+}
+
+@keyframes flashPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* HE */
+.grenade.he::after {
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle,
+    rgba(255,200,50,0.6) 0%,
+    rgba(255,120,0,0.45) 30%,
+    rgba(180,0,0,0.25) 55%,
+    transparent 70%);
+  filter: blur(3px);
+  animation: blastPulse 1.4s infinite;
+}
+
+@keyframes blastPulse {
+  0% { transform: translate(-50%, -50%) scale(0.9); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* =========================
+   BOMB
+========================= */
 .bomb {
   width: 26px;
   height: 26px;
   background: #ff1744;
   border-radius: 4px;
+  z-index: 50;
 }
 
 .bomb.planted {
   opacity: 0.6;
 }
 
-/* =========================================================
+/* =========================
    STEPS
-========================================================= */
+========================= */
 #steps {
   margin-top: 10px;
 }
@@ -407,19 +468,14 @@ main {
 #stepButtons {
   display: flex;
   gap: 4px;
-  margin-top: 6px;
 }
 
 #stepButtons button {
-  padding: 4px 6px;
   background: transparent;
   border: none;
-  border-radius: 4px;
   color: var(--text-muted);
-}
-
-#stepButtons button:hover {
-  background: var(--bg-item);
+  padding: 4px 6px;
+  border-radius: 4px;
 }
 
 #stepButtons button.active {
@@ -427,9 +483,9 @@ main {
   color: white;
 }
 
-/* =========================================================
+/* =========================
    LOADER
-========================================================= */
+========================= */
 #loader {
   position: fixed;
   inset: 0;
@@ -455,12 +511,4 @@ main {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-/* =========================================================
-   UX HELPERS
-========================================================= */
-#map-container,
-#map-container * {
-  user-select: none;
 }
