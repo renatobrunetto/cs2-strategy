@@ -454,3 +454,32 @@ main {
   -webkit-user-select: none;
   -ms-user-select: none;
 }
+
+.login-logo {
+  width: 140px;
+  max-width: 100%;
+  height: 24px;
+  margin-bottom: 16px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  height: 28px;     /* 🔑 controla o tamanho */
+  width: auto;
+  display: block;
+}
+
+.logo-text {
+  font-weight: 600;
+  font-size: 14px;
+  opacity: 0.9;
+  letter-spacing: 0.3px;
+}
