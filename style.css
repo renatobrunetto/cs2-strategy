@@ -456,7 +456,7 @@ main {
 }
 
 .login-logo {
-  width: 280px;
+  width: 560px;
   max-width: 100%;
   height: auto;
   margin-bottom: 16px;
@@ -472,7 +472,7 @@ main {
 }
 
 .header-logo {
-  height: 56px;     /* 🔑 controla o tamanho */
+  height: 112px;     /* 🔑 controla o tamanho */
   width: auto;
   display: block;
 }
