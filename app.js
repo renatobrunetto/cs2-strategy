@@ -72,6 +72,10 @@ const editorContent = document.getElementById("editor-content");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
 
+const mapImg = document.getElementById("map");
+mapImg.onload = () => {
+  mapContainer.style.height = `${mapImg.offsetHeight}px`;
+};
 // VIDEO PREVIEW
 const videoPreview = document.getElementById("video-preview");
 const videoFrame = document.getElementById("video-frame");
