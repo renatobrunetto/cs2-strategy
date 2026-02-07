@@ -19,7 +19,8 @@ import {
   doc,
   setDoc,
   getDoc,
-  updateDoc
+  updateDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =======================
@@ -45,6 +46,8 @@ let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
+let previewLock = false;
+
 // =======================
 // 🔹 DOM
 // =======================
@@ -66,25 +69,20 @@ const editorEmpty = document.getElementById("editor-empty");
 const editorContent = document.getElementById("editor-content");
 
 const mapContainer = document.getElementById("map-container");
+const stepButtons = document.getElementById("stepButtons");
 
 const videoPreview = document.getElementById("video-preview");
 const videoFrame = document.getElementById("video-frame");
-
-let previewLock = false;
 
 // =======================
 // 🔹 AUTH
 // =======================
 loginBtn.onclick = async () => {
-  showLoader();
   await signInWithPopup(auth, provider);
-  hideLoader();
 };
 
 logoutBtn.onclick = async () => {
-  showLoader();
   await signOut(auth);
-  hideLoader();
 };
 
 onAuthStateChanged(auth, async (user) => {
@@ -102,9 +100,7 @@ onAuthStateChanged(auth, async (user) => {
   appView.style.display = "block";
 
   hideEditor();
-  showLoader();
   await loadStrategies();
-  hideLoader();
 });
 
 // =======================
@@ -115,21 +111,19 @@ async function loadStrategies() {
   myPublicList.innerHTML = "";
   publicList.innerHTML = "";
 
-  const myQuery = query(
-    collection(db, "strategies"),
-    where("ownerId", "==", currentUserId)
+  const mySnap = await getDocs(
+    query(collection(db, "strategies"), where("ownerId", "==", currentUserId))
   );
 
-  const publicQuery = query(
-    collection(db, "strategies"),
-    where("isPublic", "==", true)
+  const publicSnap = await getDocs(
+    query(collection(db, "strategies"), where("isPublic", "==", true))
   );
 
-  const mySnap = await getDocs(myQuery);
-  const pubSnap = await getDocs(publicQuery);
+  mySnap.forEach(d => {
+    renderStrategy(d, true);
+  });
 
-  mySnap.forEach(d => renderStrategy(d, true));
-  pubSnap.forEach(d => {
+  publicSnap.forEach(d => {
     if (d.data().ownerId !== currentUserId) {
       renderStrategy(d, false);
     }
@@ -146,7 +140,34 @@ function renderStrategy(docSnap, isMine) {
   info.className = "strategy-info";
   info.textContent = data.name;
 
-  card.appendChild(info);
+  const actions = document.createElement("div");
+  actions.className = "strategy-actions";
+
+  if (isMine) {
+    const toggle = document.createElement("button");
+    toggle.textContent = data.isPublic ? "🌐" : "🔒";
+    toggle.onclick = async e => {
+      e.stopPropagation();
+      await updateDoc(doc(db, "strategies", docSnap.id), {
+        isPublic: !data.isPublic
+      });
+      loadStrategies();
+    };
+
+    const del = document.createElement("button");
+    del.textContent = "🗑️";
+    del.onclick = async e => {
+      e.stopPropagation();
+      if (!confirm("Excluir estratégia?")) return;
+      await deleteDoc(doc(db, "strategies", docSnap.id));
+      if (currentStrategyId === docSnap.id) hideEditor();
+      loadStrategies();
+    };
+
+    actions.append(toggle, del);
+  }
+
+  card.append(info, actions);
 
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
@@ -160,9 +181,14 @@ function renderStrategy(docSnap, isMine) {
     showEditor();
     loadSteps();
     await loadStepFromDB(1);
+    highlightActiveStep();
   };
 
-  (isMine ? myPrivateList : publicList).appendChild(card);
+  if (isMine) {
+    (data.isPublic ? myPublicList : myPrivateList).appendChild(card);
+  } else {
+    publicList.appendChild(card);
+  }
 }
 
 createStrategyBtn.onclick = async () => {
@@ -197,8 +223,7 @@ function hideEditor() {
 // 🔹 STEPS
 // =======================
 function loadSteps() {
-  const container = document.getElementById("stepButtons");
-  container.innerHTML = "";
+  stepButtons.innerHTML = "";
 
   for (let i = 1; i <= 10; i++) {
     const btn = document.createElement("button");
@@ -208,12 +233,23 @@ function loadSteps() {
       await saveCurrentStep();
       currentStep = i;
       await loadStepFromDB(i);
+      highlightActiveStep();
     };
 
-    container.appendChild(btn);
+    stepButtons.appendChild(btn);
   }
 }
 
+function highlightActiveStep() {
+  document.querySelectorAll("#stepButtons button")
+    .forEach(btn =>
+      btn.classList.toggle("active", Number(btn.textContent) === currentStep)
+    );
+}
+
+// =======================
+// 🔹 STEP STATE
+// =======================
 function ensureStepState(step) {
   if (!stepStates[step]) {
     stepStates[step] = { players: [], grenades: [], bomb: null };
@@ -221,14 +257,14 @@ function ensureStepState(step) {
 }
 
 // =======================
-// 🔹 TOOLS (UNIFICADO)
+// 🔹 TOOLS
 // =======================
 document.querySelectorAll("[data-type]").forEach(btn => {
   btn.onclick = async () => {
     if (!currentStrategyId) return;
-    const type = btn.dataset.type;
-
     ensureStepState(currentStep);
+
+    const type = btn.dataset.type;
 
     if (type === "player") {
       stepStates[currentStep].players.push({
@@ -267,8 +303,16 @@ function renderStep() {
     el.className = "player";
     el.style.left = p.x + "px";
     el.style.top = p.y + "px";
-    mapContainer.appendChild(el);
+
+    el.oncontextmenu = async e => {
+      e.preventDefault();
+      state.players = state.players.filter(x => x.id !== p.id);
+      renderStep();
+      await saveCurrentStep();
+    };
+
     makeDraggable(el, p);
+    mapContainer.appendChild(el);
   });
 
   state.grenades.forEach(g => {
@@ -279,52 +323,46 @@ function renderStep() {
 
     if (g.youtubeId) {
       el.classList.add("has-video");
-
-      el.addEventListener("mouseenter", e => {
-        previewLock = true;
-        showVideoPreview(g.youtubeId, e.clientX, e.clientY);
-      });
-
-      el.addEventListener("mouseleave", () => {
-        previewLock = false;
-        setTimeout(hideVideoPreview, 200);
-      });
+      el.onmouseenter = e => showVideoPreview(g.youtubeId, e.clientX, e.clientY);
+      el.onmouseleave = hideVideoPreview;
     }
 
-    el.addEventListener("dblclick", () => openGrenadeEditor(g));
-    mapContainer.appendChild(el);
+    el.ondblclick = () => openGrenadeEditor(g);
+
+    el.oncontextmenu = async e => {
+      e.preventDefault();
+      state.grenades = state.grenades.filter(x => x.id !== g.id);
+      renderStep();
+      await saveCurrentStep();
+    };
+
     makeDraggable(el, g);
+    mapContainer.appendChild(el);
   });
-}
 
-// =======================
-// 🔹 VIDEO PREVIEW
-// =======================
-function showVideoPreview(id, x, y) {
-  videoFrame.src = `https://www.youtube.com/embed/${id}`;
-  videoPreview.style.left = x + 12 + "px";
-  videoPreview.style.top = y + 12 + "px";
-  videoPreview.classList.remove("hidden");
-}
+  if (state.bomb) {
+    const el = document.createElement("div");
+    el.className = state.bomb.planted ? "bomb planted" : "bomb";
+    el.style.left = state.bomb.x + "px";
+    el.style.top = state.bomb.y + "px";
 
-function hideVideoPreview() {
-  if (previewLock) return;
-  videoFrame.src = "";
-  videoPreview.classList.add("hidden");
-}
+    el.oncontextmenu = async e => {
+      e.preventDefault();
+      state.bomb = null;
+      renderStep();
+      await saveCurrentStep();
+    };
 
-videoPreview.addEventListener("mouseenter", () => previewLock = true);
-videoPreview.addEventListener("mouseleave", () => {
-  previewLock = false;
-  hideVideoPreview();
-});
+    makeDraggable(el, state.bomb);
+    mapContainer.appendChild(el);
+  }
+}
 
 // =======================
 // 🔹 DRAG
 // =======================
 function makeDraggable(el, data) {
-  let dragging = false;
-  let ox, oy;
+  let dragging = false, ox = 0, oy = 0;
 
   el.onmousedown = e => {
     dragging = true;
@@ -349,10 +387,31 @@ function makeDraggable(el, data) {
 }
 
 // =======================
+// 🔹 VIDEO PREVIEW
+// =======================
+function showVideoPreview(id, x, y) {
+  previewLock = true;
+  videoFrame.src = `https://www.youtube.com/embed/${id}`;
+  videoPreview.style.left = x + 12 + "px";
+  videoPreview.style.top = y + 12 + "px";
+  videoPreview.classList.remove("hidden");
+}
+
+function hideVideoPreview() {
+  previewLock = false;
+  setTimeout(() => {
+    if (!previewLock) {
+      videoFrame.src = "";
+      videoPreview.classList.add("hidden");
+    }
+  }, 200);
+}
+
+// =======================
 // 🔹 GRENADE EDITOR
 // =======================
 function openGrenadeEditor(grenade) {
-  const url = prompt("Cole o link do YouTube:");
+  const url = prompt("Cole o link do YouTube");
   if (!url) return;
   grenade.youtubeId = extractYoutubeId(url);
   saveCurrentStep();
@@ -362,7 +421,7 @@ function openGrenadeEditor(grenade) {
 function extractYoutubeId(url) {
   try {
     const u = new URL(url);
-    return u.searchParams.get("v") || u.pathname.slice(1);
+    return u.searchParams.get("v") || u.pathname.replace("/", "");
   } catch {
     return null;
   }
@@ -387,14 +446,4 @@ async function loadStepFromDB(step) {
   stepStates[step] = snap.exists() ? snap.data().state : {};
   ensureStepState(step);
   renderStep();
-}
-
-// =======================
-// 🔹 UI HELPERS
-// =======================
-function showLoader() {
-  document.getElementById("loader").classList.remove("hidden");
-}
-function hideLoader() {
-  document.getElementById("loader").classList.add("hidden");
 }
