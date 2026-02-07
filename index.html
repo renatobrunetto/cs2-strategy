@@ -15,13 +15,24 @@
 <!-- =========================
      LOGIN VIEW
 ========================= -->
-<section id="login-view" class="centered">
+<div id="login-view" class="centered">
   <div class="login-card">
+
+    <img
+      src="assets/logo-sdk-cs2.png"
+      alt="SDK CS2 Strategy"
+      class="login-logo"
+    />
+
     <h1>CS2 Strategy Builder</h1>
-    <p>Crie, edite e compartilhe estratégias táticas</p>
-    <button id="loginBtn" class="primary">Entrar com Google</button>
+    <p>Crie, edite e compartilhe estratégias</p>
+
+    <button id="loginBtn" class="primary">
+      Entrar com Google
+    </button>
+
   </div>
-</section>
+</div>
 
 <!-- =========================
      APP VIEW
@@ -29,14 +40,21 @@
 <section id="app-view" style="display:none">
 
   <!-- HEADER -->
-  <header class="app-header">
-    <div class="logo">CS2 Strategy Builder</div>
+<header class="app-header">
+  <div class="header-left">
+    <img
+      src="assets/logo-sdk-cs2.png"
+      alt="SDK CS2 Strategy"
+      class="header-logo"
+    />
+    <span class="logo-text">CS2 Strategy Builder</span>
+  </div>
 
-    <div class="user-menu">
-      <span id="userName"></span>
-      <button id="logoutBtn">Sair</button>
-    </div>
-  </header>
+  <div class="user-menu">
+    <span id="userName"></span>
+    <button id="logoutBtn">Sair</button>
+  </div>
+</header>
 
   <!-- MAIN LAYOUT -->
   <main>
