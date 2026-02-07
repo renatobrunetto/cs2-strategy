@@ -58,12 +58,12 @@ button {
   border: 1px solid var(--border);
   padding: 36px;
   border-radius: 10px;
-  width: 420px;
+  width: 800px;
   text-align: center;
 }
 
 .login-logo {
-  width: 500px;
+  width: 600px;
   max-width: 100%;
   margin-bottom: 20px;
 }
