@@ -194,7 +194,37 @@ main {
 .strategy-actions {
   display: flex;
   gap: 6px;
-  opacity: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.strategy-card:hover .strategy-actions,
+.strategy-card.active .strategy-actions {
+  opacity: 1;
+}
+
+.strategy-actions button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: 
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.strategy-actions button:hover {
+  background: var(--bg-item);
+  color: var(--text-main);
+}
+
+/* Ações perigosas (delete) */
+.strategy-actions button.delete:hover {
+  background: rgba(229, 57, 53, 0.15);
+  color: var(--danger);
 }
 
 .strategy-card:hover .strategy-actions {
