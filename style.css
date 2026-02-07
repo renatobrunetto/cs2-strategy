@@ -79,7 +79,7 @@ button.primary {
    HEADER
 ========================= */
 .app-header {
-  height: 48px;
+  height: 120px;
   background: var(--bg-panel);
   display: flex;
   align-items: center;
