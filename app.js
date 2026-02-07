@@ -45,8 +45,6 @@ let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
-let previewHover = false;
-
 // =======================
 // 🔹 DOM
 // =======================
@@ -67,11 +65,12 @@ const publicList = document.getElementById("publicStrategyList");
 const editorEmpty = document.getElementById("editor-empty");
 const editorContent = document.getElementById("editor-content");
 
-const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
 
 const videoPreview = document.getElementById("video-preview");
 const videoFrame = document.getElementById("video-frame");
+
+let previewLock = false;
 
 // =======================
 // 🔹 AUTH
@@ -129,10 +128,10 @@ async function loadStrategies() {
   const mySnap = await getDocs(myQuery);
   const pubSnap = await getDocs(publicQuery);
 
-  mySnap.forEach(s => renderStrategy(s, true));
-  pubSnap.forEach(s => {
-    if (s.data().ownerId !== currentUserId) {
-      renderStrategy(s, false);
+  mySnap.forEach(d => renderStrategy(d, true));
+  pubSnap.forEach(d => {
+    if (d.data().ownerId !== currentUserId) {
+      renderStrategy(d, false);
     }
   });
 }
@@ -147,39 +146,7 @@ function renderStrategy(docSnap, isMine) {
   info.className = "strategy-info";
   info.textContent = data.name;
 
-  const actions = document.createElement("div");
-  actions.className = "strategy-actions";
-
-  if (isMine) {
-    const toggle = document.createElement("button");
-    toggle.textContent = data.isPublic ? "🌐" : "🔒";
-    toggle.setAttribute("data-tooltip", "Alterar visibilidade");
-
-    toggle.onclick = async (e) => {
-      e.stopPropagation();
-      await updateDoc(doc(db, "strategies", docSnap.id), {
-        isPublic: !data.isPublic
-      });
-      loadStrategies();
-    };
-
-    const del = document.createElement("button");
-    del.textContent = "🗑️";
-    del.classList.add("delete");
-    del.setAttribute("data-tooltip", "Excluir estratégia");
-
-    del.onclick = async (e) => {
-      e.stopPropagation();
-      if (!confirm("Excluir estratégia?")) return;
-      await setDoc(doc(db, "strategies", docSnap.id), {}, { merge: false });
-      if (currentStrategyId === docSnap.id) hideEditor();
-      loadStrategies();
-    };
-
-    actions.append(toggle, del);
-  }
-
-  card.append(info, actions);
+  card.appendChild(info);
 
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
@@ -192,37 +159,29 @@ function renderStrategy(docSnap, isMine) {
 
     showEditor();
     loadSteps();
-
-    showLoader();
     await loadStepFromDB(1);
-    hideLoader();
   };
 
-  (isMine
-    ? data.isPublic ? myPublicList : myPrivateList
-    : publicList
-  ).appendChild(card);
+  (isMine ? myPrivateList : publicList).appendChild(card);
 }
 
 createStrategyBtn.onclick = async () => {
   const name = newStrategyInput.value.trim();
   if (!name) return;
 
-  showLoader();
   await addDoc(collection(db, "strategies"), {
     name,
     ownerId: currentUserId,
     isPublic: false,
     createdAt: new Date()
   });
-  hideLoader();
 
   newStrategyInput.value = "";
   loadStrategies();
 };
 
 // =======================
-// 🔹 EDITOR
+// 🔹 EDITOR VISIBILITY
 // =======================
 function showEditor() {
   editorEmpty.style.display = "none";
@@ -244,54 +203,45 @@ function loadSteps() {
   for (let i = 1; i <= 10; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
+
     btn.onclick = async () => {
       await saveCurrentStep();
       currentStep = i;
       await loadStepFromDB(i);
     };
+
     container.appendChild(btn);
   }
 }
 
-// =======================
-// 🔹 STEP STATE
-// =======================
 function ensureStepState(step) {
-  stepStates[step] ||= { players: [], grenades: [], bomb: null };
+  if (!stepStates[step]) {
+    stepStates[step] = { players: [], grenades: [], bomb: null };
+  }
 }
 
 // =======================
-// 🔹 TOOLS
+// 🔹 TOOLS (UNIFICADO)
 // =======================
-addPlayerBtn.onclick = async () => {
-  if (!currentStrategyId) return;
-  ensureStepState(currentStep);
-
-  stepStates[currentStep].players.push({
-    id: `p${Date.now()}`,
-    x: 100,
-    y: 100
-  });
-
-  renderStep();
-  await saveCurrentStep();
-};
-
 document.querySelectorAll("[data-type]").forEach(btn => {
   btn.onclick = async () => {
     if (!currentStrategyId) return;
-    ensureStepState(currentStep);
-
     const type = btn.dataset.type;
 
-    if (type === "bomb") {
+    ensureStepState(currentStep);
+
+    if (type === "player") {
+      stepStates[currentStep].players.push({
+        id: Date.now(),
+        x: 100,
+        y: 100
+      });
+    } else if (type === "bomb") {
       stepStates[currentStep].bomb =
-        stepStates[currentStep].bomb
-          ? null
-          : { x: 200, y: 200, planted: false };
+        stepStates[currentStep].bomb ? null : { x: 200, y: 200, planted: false };
     } else {
       stepStates[currentStep].grenades.push({
-        id: `g${Date.now()}`,
+        id: Date.now(),
         type,
         x: 150,
         y: 150,
@@ -305,7 +255,7 @@ document.querySelectorAll("[data-type]").forEach(btn => {
 });
 
 // =======================
-// 🔹 RENDER
+// 🔹 RENDER STEP
 // =======================
 function renderStep() {
   mapContainer.querySelectorAll(".player,.grenade,.bomb").forEach(e => e.remove());
@@ -315,41 +265,36 @@ function renderStep() {
   state.players.forEach(p => {
     const el = document.createElement("div");
     el.className = "player";
-    el.style.left = `${p.x}px`;
-    el.style.top = `${p.y}px`;
-    makeDraggable(el, p);
+    el.style.left = p.x + "px";
+    el.style.top = p.y + "px";
     mapContainer.appendChild(el);
+    makeDraggable(el, p);
   });
 
   state.grenades.forEach(g => {
     const el = document.createElement("div");
     el.className = `grenade ${g.type}`;
-    el.style.left = `${g.x}px`;
-    el.style.top = `${g.y}px`;
+    el.style.left = g.x + "px";
+    el.style.top = g.y + "px";
 
     if (g.youtubeId) {
-      el.addEventListener("mouseenter", e =>
-        showVideoPreview(g.youtubeId, e.clientX, e.clientY)
-      );
+      el.classList.add("has-video");
+
+      el.addEventListener("mouseenter", e => {
+        previewLock = true;
+        showVideoPreview(g.youtubeId, e.clientX, e.clientY);
+      });
+
       el.addEventListener("mouseleave", () => {
-        previewHover = false;
-        hideVideoPreview();
+        previewLock = false;
+        setTimeout(hideVideoPreview, 200);
       });
     }
 
     el.addEventListener("dblclick", () => openGrenadeEditor(g));
+    mapContainer.appendChild(el);
     makeDraggable(el, g);
-    mapContainer.appendChild(el);
   });
-
-  if (state.bomb) {
-    const el = document.createElement("div");
-    el.className = "bomb";
-    el.style.left = `${state.bomb.x}px`;
-    el.style.top = `${state.bomb.y}px`;
-    makeDraggable(el, state.bomb);
-    mapContainer.appendChild(el);
-  }
 }
 
 // =======================
@@ -357,24 +302,20 @@ function renderStep() {
 // =======================
 function showVideoPreview(id, x, y) {
   videoFrame.src = `https://www.youtube.com/embed/${id}`;
-  videoPreview.style.left = `${x + 12}px`;
-  videoPreview.style.top = `${y + 12}px`;
+  videoPreview.style.left = x + 12 + "px";
+  videoPreview.style.top = y + 12 + "px";
   videoPreview.classList.remove("hidden");
-  previewHover = true;
 }
 
 function hideVideoPreview() {
-  setTimeout(() => {
-    if (!previewHover) {
-      videoFrame.src = "";
-      videoPreview.classList.add("hidden");
-    }
-  }, 120);
+  if (previewLock) return;
+  videoFrame.src = "";
+  videoPreview.classList.add("hidden");
 }
 
-videoPreview.addEventListener("mouseenter", () => previewHover = true);
+videoPreview.addEventListener("mouseenter", () => previewLock = true);
 videoPreview.addEventListener("mouseleave", () => {
-  previewHover = false;
+  previewLock = false;
   hideVideoPreview();
 });
 
@@ -383,61 +324,45 @@ videoPreview.addEventListener("mouseleave", () => {
 // =======================
 function makeDraggable(el, data) {
   let dragging = false;
-  let ox = 0, oy = 0;
+  let ox, oy;
 
-  el.addEventListener("mousedown", e => {
+  el.onmousedown = e => {
     dragging = true;
     ox = e.offsetX;
     oy = e.offsetY;
-  });
+  };
 
-  document.addEventListener("mousemove", e => {
+  document.onmousemove = e => {
     if (!dragging) return;
-    const r = mapContainer.getBoundingClientRect();
-    data.x = Math.max(0, Math.min(e.clientX - r.left - ox, r.width - el.offsetWidth));
-    data.y = Math.max(0, Math.min(e.clientY - r.top - oy, r.height - el.offsetHeight));
-    el.style.left = `${data.x}px`;
-    el.style.top = `${data.y}px`;
-  });
+    const rect = mapContainer.getBoundingClientRect();
+    data.x = e.clientX - rect.left - ox;
+    data.y = e.clientY - rect.top - oy;
+    el.style.left = data.x + "px";
+    el.style.top = data.y + "px";
+  };
 
-  document.addEventListener("mouseup", async () => {
+  document.onmouseup = async () => {
     if (!dragging) return;
     dragging = false;
     await saveCurrentStep();
-  });
+  };
 }
 
 // =======================
 // 🔹 GRENADE EDITOR
 // =======================
 function openGrenadeEditor(grenade) {
-  const modal = document.getElementById("grenade-modal");
-  if (!modal) return;
-
-  const input = modal.querySelector("#grenadeVideoInput");
-  input.value = grenade.youtubeId ? `https://youtu.be/${grenade.youtubeId}` : "";
-
-  modal.classList.add("open");
-
-  modal.querySelector("#saveGrenadeVideo").onclick = async () => {
-    grenade.youtubeId = extractYoutubeId(input.value);
-    modal.classList.remove("open");
-    await saveCurrentStep();
-    renderStep();
-  };
-
-  modal.querySelector("#removeGrenadeVideo").onclick = async () => {
-    grenade.youtubeId = null;
-    modal.classList.remove("open");
-    await saveCurrentStep();
-    renderStep();
-  };
+  const url = prompt("Cole o link do YouTube:");
+  if (!url) return;
+  grenade.youtubeId = extractYoutubeId(url);
+  saveCurrentStep();
+  renderStep();
 }
 
 function extractYoutubeId(url) {
   try {
     const u = new URL(url);
-    return u.searchParams.get("v") || u.pathname.replace("/", "");
+    return u.searchParams.get("v") || u.pathname.slice(1);
   } catch {
     return null;
   }
@@ -448,6 +373,7 @@ function extractYoutubeId(url) {
 // =======================
 async function saveCurrentStep() {
   if (!currentStrategyId) return;
+  ensureStepState(currentStep);
   await setDoc(
     doc(db, "strategies", currentStrategyId, "steps", String(currentStep)),
     { state: stepStates[currentStep] }
@@ -455,20 +381,20 @@ async function saveCurrentStep() {
 }
 
 async function loadStepFromDB(step) {
-  const ref = doc(db, "strategies", currentStrategyId, "steps", String(step));
-  const snap = await getDoc(ref);
+  const snap = await getDoc(
+    doc(db, "strategies", currentStrategyId, "steps", String(step))
+  );
   stepStates[step] = snap.exists() ? snap.data().state : {};
   ensureStepState(step);
   renderStep();
 }
 
 // =======================
-// 🔹 UI
+// 🔹 UI HELPERS
 // =======================
 function showLoader() {
   document.getElementById("loader").classList.remove("hidden");
 }
-
 function hideLoader() {
   document.getElementById("loader").classList.add("hidden");
 }
