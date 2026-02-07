@@ -79,7 +79,7 @@ button.primary {
    HEADER
 ========================= */
 .app-header {
-  height: 120px;
+  height: 90px;
   background: var(--bg-panel);
   display: flex;
   align-items: center;
@@ -475,7 +475,7 @@ main {
 }
 
 .header-logo {
-  height: 112px;     /* 🔑 controla o tamanho */
+  height: 80px;     /* 🔑 controla o tamanho */
   width: auto;
   display: block;
 }
