@@ -262,6 +262,36 @@ main {
   width: 28px;
   height: 28px;
 }
+.command-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tools-label {
+  margin-right: 6px;
+}
+
+.cmd-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  padding: 2px 6px;
+  font-size: 13px;
+  border-radius: 4px;
+}
+
+.cmd-btn:hover {
+  background: var(--bg-item);
+}
+
+.cmd-btn:active {
+  background: var(--primary);
+  color: white;
+}
 
 /* =========================
    MAP
@@ -277,6 +307,7 @@ main {
   width: 100%;
   pointer-events: none;
 }
+
 
 /* =========================
    STEPS
