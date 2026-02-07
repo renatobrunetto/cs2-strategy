@@ -73,7 +73,9 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 // LOGIN
 loginBtn.onclick = async () => {
+  showLoader();
   await signInWithPopup(auth, provider);
+  hideLoader();
 };
 
 // AUTH STATE
@@ -91,12 +93,16 @@ onAuthStateChanged(auth, async (user) => {
   loginView.style.display = "none";
   appView.style.display = "block";
 
+  showLoader();
   await loadStrategies();
+  hideLoader();
 });
 
 // LOGOUT
 logoutBtn.onclick = async () => {
+  showLoader();
   await auth.signOut();
+  hideLoader();
 };
 
 // =======================
@@ -106,6 +112,26 @@ async function loadStrategies() {
   myPrivateList.innerHTML = "";
   myPublicList.innerHTML = "";
   publicList.innerHTML = "";
+  if (!myPrivateList.children.length) {
+  myPrivateList.innerHTML = `
+    <div class="empty-state">
+      Você ainda não criou estratégias privadas
+    </div>`;
+}
+
+if (!myPublicList.children.length) {
+  myPublicList.innerHTML = `
+    <div class="empty-state">
+      Nenhuma estratégia pública sua ainda
+    </div>`;
+}
+
+if (!publicList.children.length) {
+  publicList.innerHTML = `
+    <div class="empty-state">
+      Nenhuma estratégia pública disponível
+    </div>`;
+}
 
   const myQuery = query(
     collection(db, "strategies"),
@@ -212,7 +238,9 @@ function renderStrategy(docSnap, isMine) {
       .forEach(c => c.classList.remove("active"));
     card.classList.add("active");
 
+    showLoader();
     await loadStepFromDB(1);
+    hideLoader();
     loadSteps();
     highlightActiveStep();
   };
@@ -231,6 +259,7 @@ createStrategyBtn.onclick = async () => {
   const name = newStrategyInput.value.trim();
   if (!name) return;
 
+  showLoader();
   await addDoc(collection(db, "strategies"), {
     name,
     map: "dust2",
@@ -239,6 +268,7 @@ createStrategyBtn.onclick = async () => {
     createdAt: new Date()
   });
 
+  hideLoader();
   newStrategyInput.value = "";
   loadStrategies();
 };
@@ -441,6 +471,7 @@ function makeDraggable(el, data) {
   document.addEventListener("mouseup", async () => {
     if (!dragging) return;
     dragging = false;
+    
     await saveCurrentStep();
   });
 }
