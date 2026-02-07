@@ -256,28 +256,50 @@ function draw(cls, data) {
   el.style.left = data.x + "px";
   el.style.top = data.y + "px";
 
-el.oncontextmenu = e => {
-  e.preventDefault();
+  el.oncontextmenu = e => {
+    e.preventDefault();
+  
+    const state = stepStates[currentStep];
+  
+    // 🔹 Se for player
+    if (cls === "player") {
+      state.players = state.players.filter(p => p !== data);
+    }
+  
+    // 🔹 Se for granada
+    if (cls.startsWith("grenade")) {
+      state.grenades = state.grenades.filter(g => g !== data);
+    }
+  
+    // 🔹 Se for bomba
+    if (cls === "bomb") {
+      state.bomb = null;
+    }
+  
+    renderStep();
+    saveStep();
+  };
 
-  const state = stepStates[currentStep];
+  el.onmousedown = ev => {
+  ev.preventDefault();
 
-  // 🔹 Se for player
-  if (cls === "player") {
-    state.players = state.players.filter(p => p !== data);
-  }
+  const rect = mapContainer.getBoundingClientRect();
+  const ox = ev.clientX - rect.left - data.x;
+  const oy = ev.clientY - rect.top - data.y;
 
-  // 🔹 Se for granada
-  if (cls.startsWith("grenade")) {
-    state.grenades = state.grenades.filter(g => g !== data);
-  }
+  document.onmousemove = m => {
+    data.x = m.clientX - rect.left - ox;
+    data.y = m.clientY - rect.top - oy;
 
-  // 🔹 Se for bomba
-  if (cls === "bomb") {
-    state.bomb = null;
-  }
+    el.style.left = data.x + "px";
+    el.style.top = data.y + "px";
+  };
 
-  renderStep();
-  saveStep();
+  document.onmouseup = () => {
+    document.onmousemove = null;
+    document.onmouseup = null;
+    saveStep();
+  };
 };
 
 
