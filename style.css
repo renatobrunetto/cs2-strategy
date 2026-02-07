@@ -595,4 +595,5 @@ main {
   display: block;
   border-radius: 4px;
 }
+.grenade.has-video::after { content: "▶"; }
 
