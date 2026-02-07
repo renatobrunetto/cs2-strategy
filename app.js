@@ -172,6 +172,7 @@ function renderStrategy(docSnap, isMine) {
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
+    deleteBtn.classList.add("delete");
     deleteBtn.onclick = async (e) => {
       e.stopPropagation();
       if (!confirm("Excluir estratégia?")) return;
