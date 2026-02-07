@@ -278,17 +278,12 @@ main {
 ========================= */
 #map-container {
   position: relative;
-  width: 1600px;
-  max-width: 100%;
-  background: black;
+  line-height: 0;
 }
 
 #map {
-  width: 100%;
+  display: block;
   pointer-events: none;
-}
-
-#map {
   position: relative;
   z-index: 1;   
 }
