@@ -445,7 +445,11 @@ function makeDraggable(el, data) {
 // =======================
 function openGrenadeEditor(grenade) {
   const modal = document.getElementById("grenade-modal");
+  if (!modal) return;
+
   const input = modal.querySelector("#grenadeVideoInput");
+  const saveBtn = modal.querySelector("#saveGrenadeVideo");
+  const removeBtn = modal.querySelector("#removeGrenadeVideo");
 
   input.value = grenade.youtubeId
     ? `https://www.youtube.com/watch?v=${grenade.youtubeId}`
@@ -453,29 +457,61 @@ function openGrenadeEditor(grenade) {
 
   modal.classList.add("open");
 
-  modal.querySelector("#saveGrenadeVideo").onclick = async () => {
-    grenade.youtubeId = extractYoutubeId(input.value);
+  saveBtn.onclick = async () => {
+    const id = extractYoutubeId(input.value);
+    grenade.youtubeId = id;
     modal.classList.remove("open");
     await saveCurrentStep();
     renderStep();
   };
 
-  modal.querySelector("#removeGrenadeVideo").onclick = async () => {
+  removeBtn.onclick = async () => {
     grenade.youtubeId = null;
     input.value = "";
+    modal.classList.remove("open");
     await saveCurrentStep();
     renderStep();
   };
 }
 
+  modal.querySelector("#removeGrenadeVideo").onclick = async () => {
+    grenade.youtubeId = null;
+    input.value = "";
+    modal.classList.remove("open");
+    await saveCurrentStep();
+    renderStep();
+  };
+
+}
+
 function extractYoutubeId(url) {
+  if (!url) return null;
+
   try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtube.com")) return u.searchParams.get("v");
-    if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
-  } catch {}
+    const cleaned = url.trim();
+    const u = new URL(cleaned);
+
+    // youtube.com/watch?v=ID
+    if (u.searchParams.get("v")) {
+      return u.searchParams.get("v");
+    }
+
+    // youtu.be/ID
+    if (u.hostname.includes("youtu.be")) {
+      return u.pathname.replace("/", "");
+    }
+
+    // youtube.com/shorts/ID
+    if (u.pathname.includes("/shorts/")) {
+      return u.pathname.split("/shorts/")[1];
+    }
+  } catch (e) {
+    return null;
+  }
+
   return null;
 }
+
 
 // =======================
 // 🔹 FIRESTORE
