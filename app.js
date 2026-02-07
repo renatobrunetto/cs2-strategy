@@ -541,12 +541,18 @@ function hideLoader() {
 }
 
 function showEditor() {
+  if (!editorEmpty || !editorContent) {
+    console.error("Editor containers não encontrados no DOM");
+    return;
+  }
   editorEmpty.style.display = "none";
   editorContent.style.display = "block";
 }
 
 function hideEditor() {
+  if (!editorEmpty || !editorContent) return;
   editorContent.style.display = "none";
   editorEmpty.style.display = "flex";
 }
+
 
