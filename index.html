@@ -147,25 +147,14 @@
 <!-- TOASTS -->
 <div id="toast-container"></div>
 
-<!-- GRENADE VIDEO MODAL -->
-<div id="grenade-modal" class="grenade-modal">
-  <div class="grenade-modal-content">
-    <h3>Vídeo da granada</h3>
-
-    <input
-      id="grenadeVideoInput"
-      type="text"
-      placeholder="Cole o link do YouTube"
-    />
-
-    <div class="modal-actions">
-      <button id="saveGrenadeVideo">Salvar</button>
-      <button id="removeGrenadeVideo">Remover vídeo</button>
-      <button onclick="this.closest('#grenade-modal').classList.remove('open')">
-        Cancelar
-      </button>
-    </div>
-  </div>
+<div id="video-preview" class="video-preview hidden">
+  <iframe
+    id="video-frame"
+    width="560"
+    height="366"
+    frameborder="0"
+    allowfullscreen
+  ></iframe>
 </div>
 
 <!-- JS -->
