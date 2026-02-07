@@ -1,6 +1,6 @@
-/* =========================
-   VARIABLES (THEME)
-========================= */
+/* =========================================================
+   THEME VARIABLES
+========================================================= */
 :root {
   --bg-main: #0f0f0f;
   --bg-panel: #151515;
@@ -13,9 +13,9 @@
   --danger: #e53935;
 }
 
-/* =========================
-   RESET / BASE
-========================= */
+/* =========================================================
+   BASE / RESET
+========================================================= */
 * {
   box-sizing: border-box;
 }
@@ -38,9 +38,9 @@ button {
   cursor: pointer;
 }
 
-/* =========================
+/* =========================================================
    LOGIN
-========================= */
+========================================================= */
 .centered {
   height: 100vh;
   display: flex;
@@ -49,11 +49,17 @@ button {
 }
 
 .login-card {
-  background: var(--bg-panel);
-  padding: 32px;
-  border-radius: 8px;
   width: 640px;
+  padding: 32px;
+  background: var(--bg-panel);
+  border-radius: 8px;
   text-align: center;
+}
+
+.login-logo {
+  width: 560px;
+  max-width: 100%;
+  margin-bottom: 16px;
 }
 
 .login-card h1 {
@@ -63,67 +69,79 @@ button {
 }
 
 .login-card p {
-  color: var(--text-muted);
   margin-bottom: 20px;
+  color: var(--text-muted);
 }
 
 button.primary {
+  padding: 8px 14px;
   background: var(--primary);
   border: none;
-  padding: 8px 14px;
-  color: white;
   border-radius: 6px;
+  color: white;
 }
 
-/* =========================
+/* =========================================================
    HEADER
-========================= */
+========================================================= */
 .app-header {
   height: 90px;
+  padding: 0 16px;
   background: var(--bg-panel);
+  border-bottom: 1px solid #2a2a2a;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  border-bottom: 1px solid #2a2a2a;
 }
 
-.logo {
-  font-weight: 600;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  height: 80px;
+}
+
+.logo-text {
   font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  opacity: 0.9;
 }
 
 .user-menu {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--text-muted);
   font-size: 13px;
+  color: var(--text-muted);
 }
 
 #logoutBtn {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 2px 4px;
 }
 
-/* =========================
+/* =========================================================
    LAYOUT
-========================= */
+========================================================= */
 main {
   display: flex;
-  height: calc(100vh - 48px);
+  height: calc(100vh - 90px);
 }
 
-/* =========================
-   SIDEBAR
-========================= */
+/* =========================================================
+   SIDEBAR / STRATEGIES
+========================================================= */
 #strategies {
   width: 280px;
+  padding: 12px;
   background: var(--bg-panel);
   border-right: 1px solid #2a2a2a;
-  padding: 12px;
   overflow-y: auto;
 }
 
@@ -135,7 +153,7 @@ main {
   text-transform: uppercase;
 }
 
-/* CREATE STRATEGY */
+/* Create strategy */
 #create-strategy {
   display: flex;
   gap: 6px;
@@ -148,37 +166,35 @@ main {
   background: var(--bg-item);
   border: none;
   color: white;
-  font-size: 13px;
 }
 
 #create-strategy button {
+  padding: 6px 10px;
   background: var(--primary);
   border: none;
-  padding: 6px 10px;
-  font-size: 14px;
 }
 
-/* STRATEGY LIST */
+/* Strategy list */
 .strategy-list {
   display: flex;
   flex-direction: column;
 }
 
-/* STRATEGY ITEM */
 .strategy-card {
+  padding: 6px 8px;
+  border-left: 3px solid transparent;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
-  border-left: 3px solid transparent;
 }
 
-.strategy-card:hover {
+.strategy-card:hover,
+.strategy-card.active {
   background: var(--bg-item);
 }
 
 .strategy-card.active {
-  background: var(--bg-item);
   border-left-color: var(--primary);
 }
 
@@ -191,6 +207,7 @@ main {
   font-weight: 600;
 }
 
+/* Actions */
 .strategy-actions {
   display: flex;
   gap: 6px;
@@ -204,16 +221,14 @@ main {
 }
 
 .strategy-actions button {
+  position: relative;
+  padding: 4px 6px;
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  font-size: 12px;
-  padding: 4px 6px;
   border-radius: 4px;
-  line-height: 1;
-  transition: 
-    background 0.15s ease,
-    color 0.15s ease;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .strategy-actions button:hover {
@@ -221,24 +236,36 @@ main {
   color: var(--text-main);
 }
 
-/* Ações perigosas (delete) */
 .strategy-actions button.delete:hover {
   background: rgba(229, 57, 53, 0.15);
   color: var(--danger);
 }
 
-.strategy-card:hover .strategy-actions {
+/* Tooltip */
+.strategy-actions button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  right: 0;
+
+  padding: 4px 6px;
+  background: #000;
+  color: #fff;
+  font-size: 11px;
+  border-radius: 4px;
+
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.strategy-actions button:hover::after {
   opacity: 1;
+  transform: translateY(0);
 }
 
-.strategy-actions button {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-/* EMPTY STATE */
+/* Empty state */
 .empty-state {
   padding: 12px;
   font-size: 12px;
@@ -246,9 +273,9 @@ main {
   text-align: center;
 }
 
-/* =========================
+/* =========================================================
    EDITOR
-========================= */
+========================================================= */
 #editor {
   flex: 1;
   padding: 12px;
@@ -264,29 +291,26 @@ main {
   color: var(--text-muted);
 }
 
-/* =========================
-   COMMAND BAR (TOOLS)
-========================= */
+/* =========================================================
+   COMMAND BAR
+========================================================= */
 .command-bar {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 10px;
-  font-size: 13px;
 }
 
 .tools-label {
   color: var(--text-muted);
-  margin-right: 6px;
 }
 
 .cmd-btn {
+  padding: 2px 6px;
   background: transparent;
   border: none;
-  color: var(--text-main);
-  padding: 2px 6px;
-  font-size: 13px;
   border-radius: 4px;
+  font-size: 13px;
 }
 
 .cmd-btn:hover {
@@ -298,30 +322,24 @@ main {
   color: white;
 }
 
-/* =========================
-   MAP (FIXED)
-========================= */
+/* =========================================================
+   MAP
+========================================================= */
 #map-container {
   position: relative;
-  width: 1600px;
   max-width: 100%;
-  line-height: 0;
   overflow: hidden;
+  line-height: 0;
   background: black;
 }
 
 #map {
-  display: block;
   width: 100%;
-  height: auto;
+  display: block;
   pointer-events: none;
-  position: relative;
-  z-index: 1;
 }
 
-/* =========================
-   MAP ELEMENTS (LAYERS)
-========================= */
+/* Map elements */
 .player,
 .grenade,
 .bomb {
@@ -333,19 +351,14 @@ main {
 .grenade { z-index: 40; }
 .bomb { z-index: 50; }
 
-/* =========================
-   PLAYER (HUMAN SHAPE)
-========================= */
+/* Player */
 .player {
-  position: absolute;
   width: 18px;
   height: 24px;
   background: #e53935;
   border-radius: 4px;
-  z-index: 30;
 }
 
-/* Cabeça */
 .player::before {
   content: "";
   position: absolute;
@@ -357,36 +370,20 @@ main {
   border-radius: 50%;
 }
 
-/* =========================
-   GRENADES
-========================= */
+/* Grenades */
 .grenade {
   width: 22px;
   height: 22px;
   border-radius: 50%;
   border: 1px solid #555;
-  background-color: #9e9e9e;
 }
 
-.grenade.smoke {
-  background-color: #9e9e9e;
-}
+.grenade.smoke   { background: #9e9e9e; }
+.grenade.flash   { background: #fdd835; }
+.grenade.molotov { background: #ff7043; }
+.grenade.he      { background: #66bb6a; }
 
-.grenade.flash {
-  background-color: #fdd835;
-}
-
-.grenade.molotov {
-  background-color: #ff7043;
-}
-
-.grenade.he {
-  background-color: #66bb6a;
-}
-
-/* =========================
-   BOMB
-========================= */
+/* Bomb */
 .bomb {
   width: 26px;
   height: 26px;
@@ -398,9 +395,9 @@ main {
   opacity: 0.6;
 }
 
-/* =========================
+/* =========================================================
    STEPS
-========================= */
+========================================================= */
 #steps {
   margin-top: 10px;
 }
@@ -412,11 +409,11 @@ main {
 }
 
 #stepButtons button {
+  padding: 4px 6px;
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  padding: 4px 6px;
   border-radius: 4px;
+  color: var(--text-muted);
 }
 
 #stepButtons button:hover {
@@ -428,9 +425,9 @@ main {
   color: white;
 }
 
-/* =========================
+/* =========================================================
    LOADER
-========================= */
+========================================================= */
 #loader {
   position: fixed;
   inset: 0;
@@ -458,61 +455,10 @@ main {
   to { transform: rotate(360deg); }
 }
 
-/* =========================
-   TOASTS
-========================= */
-#toast-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 9999;
-}
-
-.toast {
-  background: var(--bg-item);
-  padding: 8px 12px;
-  border-left: 4px solid var(--primary);
-  font-size: 13px;
-}
-
-/* =========================
+/* =========================================================
    UX HELPERS
-========================= */
+========================================================= */
 #map-container,
 #map-container * {
   user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-}
-
-.login-logo {
-  width: 560px;
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 16px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-logo {
-  height: 80px;     /* 🔑 controla o tamanho */
-  width: auto;
-  display: block;
-}
-
-.logo-text {
-  font-weight: 600;
-  font-size: 14px;
-  opacity: 0.9;
-  letter-spacing: 0.3px;
 }
