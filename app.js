@@ -508,13 +508,3 @@ function showLoader() {
 function hideLoader() {
   document.getElementById("loader").classList.add("hidden");
 }
-
-function openGrenadeEditor(grenade) {
-  const modal = document.getElementById("grenade-modal");
-  if (!modal) {
-    alert("Editor de vídeo ainda não configurado.");
-    return;
-  }
-  ...
-}
-
