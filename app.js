@@ -66,6 +66,7 @@ const editorContent = document.getElementById("editor-content");
 
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
+const stepButtons = document.getElementById("stepButtons");
 
 // =======================
 // 🔹 AUTH
@@ -102,11 +103,11 @@ async function loadStrategies() {
 
   mineSnap.forEach(docSnap => {
     const data = docSnap.data();
-    if (data.isPublic) {
-      renderStrategy(docSnap, myPublicStrategyList, true);
-    } else {
-      renderStrategy(docSnap, myPrivateStrategyList, true);
-    }
+    renderStrategy(
+      docSnap,
+      data.isPublic ? myPublicStrategyList : myPrivateStrategyList,
+      true
+    );
   });
 
   const publicSnap = await getDocs(
@@ -129,7 +130,6 @@ function renderStrategy(docSnap, container, isMine) {
   const name = document.createElement("div");
   name.className = "strategy-info";
   name.textContent = data.name;
-
   card.appendChild(name);
 
   if (isMine) {
@@ -167,11 +167,18 @@ function renderStrategy(docSnap, container, isMine) {
   }
 
   card.onclick = async () => {
+    // 🔴 reset completo ao trocar de estratégia
+    Object.keys(stepStates).forEach(k => delete stepStates[k]);
+
     currentStrategyId = docSnap.id;
     currentStep = 1;
+
     editorEmpty.style.display = "none";
     editorContent.style.display = "block";
+
+    loadSteps();
     await loadStep();
+    highlightActiveStep();
   };
 
   container.appendChild(card);
@@ -196,7 +203,7 @@ createStrategyBtn.onclick = async () => {
 };
 
 // =======================
-// 🔹 STEPS / MAP (inalterado)
+// 🔹 STEP STATE
 // =======================
 function ensureState() {
   if (!stepStates[currentStep]) {
@@ -204,6 +211,9 @@ function ensureState() {
   }
 }
 
+// =======================
+// 🔹 TOOLS
+// =======================
 addPlayerBtn.onclick = () => {
   if (!currentStrategyId) return;
   ensureState();
@@ -227,6 +237,9 @@ document.querySelectorAll("[data-type]").forEach(btn => {
   };
 });
 
+// =======================
+// 🔹 RENDER MAP
+// =======================
 function renderStep() {
   mapContainer.querySelectorAll(".player,.grenade,.bomb").forEach(e => e.remove());
   const s = stepStates[currentStep];
@@ -274,6 +287,9 @@ function draw(cls, data) {
   mapContainer.appendChild(el);
 }
 
+// =======================
+// 🔹 FIRESTORE
+// =======================
 async function saveStep() {
   if (!currentStrategyId) return;
   await setDoc(
@@ -290,4 +306,34 @@ async function loadStep() {
     ? snap.data().state
     : { players: [], grenades: [], bomb: null };
   renderStep();
+}
+
+// =======================
+// 🔹 STEPS UI
+// =======================
+function loadSteps() {
+  stepButtons.innerHTML = "";
+
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+
+    btn.onclick = async () => {
+      if (!currentStrategyId) return;
+      await saveStep();
+      currentStep = i;
+      await loadStep();
+      highlightActiveStep();
+    };
+
+    stepButtons.appendChild(btn);
+  }
+
+  highlightActiveStep();
+}
+
+function highlightActiveStep() {
+  document.querySelectorAll("#stepButtons button").forEach(btn => {
+    btn.classList.toggle("active", Number(btn.textContent) === currentStep);
+  });
 }
