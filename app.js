@@ -162,6 +162,7 @@ function renderStrategy(docSnap, isMine) {
   if (isMine) {
     const toggleBtn = document.createElement("button");
     toggleBtn.textContent = "🔁";
+    toggleBtn.dataset.tooltip = "Alterar visibilidade";
     toggleBtn.onclick = async (e) => {
       e.stopPropagation();
       await updateDoc(doc(db, "strategies", docSnap.id), {
@@ -172,7 +173,8 @@ function renderStrategy(docSnap, isMine) {
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
-    deleteBtn.classList.add("delete");
+    deleteBtn.dataset.tooltip = "Excluir estratégia";
+    deleteBtn.classList.add("delete");    
     deleteBtn.onclick = async (e) => {
       e.stopPropagation();
       if (!confirm("Excluir estratégia?")) return;
