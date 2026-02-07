@@ -472,7 +472,6 @@ function openGrenadeEditor(grenade) {
     await saveCurrentStep();
     renderStep();
   };
-}
 
   modal.querySelector("#removeGrenadeVideo").onclick = async () => {
     grenade.youtubeId = null;
@@ -481,8 +480,8 @@ function openGrenadeEditor(grenade) {
     await saveCurrentStep();
     renderStep();
   };
-
 }
+
 
 function extractYoutubeId(url) {
   if (!url) return null;
