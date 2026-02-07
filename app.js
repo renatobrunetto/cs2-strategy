@@ -256,17 +256,7 @@ function draw(cls, data) {
   el.style.left = data.x + "px";
   el.style.top = data.y + "px";
 
-  el.oncontextmenu = e => {
-    e.preventDefault();
-    Object.values(stepStates[currentStep]).forEach(arr => {
-      if (Array.isArray(arr)) {
-        const i = arr.indexOf(data);
-        if (i > -1) arr.splice(i, 1);
-      }
-    });
-    renderStep();
-    saveStep();
-  };
+ el.oncontextmenu = e => {
 
   el.onmousedown = ev => {
     const ox = ev.offsetX;
