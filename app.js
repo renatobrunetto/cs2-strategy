@@ -43,12 +43,24 @@ const mapContainer = document.getElementById("map-container");
 loginBtn.onclick = () => signInWithPopup(auth, provider);
 logoutBtn.onclick = () => signOut(auth);
 
+function hideLoader() {
+  document.getElementById("loader")?.classList.add("hidden");
+}
+
 onAuthStateChanged(auth, async user => {
-  if (!user) return loginView.style.display = "flex";
+  hideLoader(); // 🔴 GARANTE que nunca fique preso
+
+  if (!user) {
+    loginView.style.display = "flex";
+    appView.style.display = "none";
+    return;
+  }
+
   loginView.style.display = "none";
   appView.style.display = "block";
   userName.textContent = user.displayName;
-  loadStrategies();
+
+  await loadStrategies();
 });
 
 // STRATEGIES
