@@ -147,8 +147,31 @@
 <!-- TOASTS -->
 <div id="toast-container"></div>
 
+<div id="grenade-modal">
+  <div class="grenade-modal-box">
+    <h3>Editar granada</h3>
+
+    <label>Vídeo do YouTube</label>
+    <input
+      id="grenadeVideoInput"
+      type="text"
+      placeholder="https://www.youtube.com/watch?v=..."
+    />
+
+    <div class="grenade-modal-actions">
+      <button id="removeGrenadeVideo" class="danger">
+        Remover vídeo
+      </button>
+
+      <button id="saveGrenadeVideo" class="primary">
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- JS -->
 <script type="module" src="app.js"></script>
-
+  
 </body>
 </html>
