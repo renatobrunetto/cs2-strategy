@@ -323,8 +323,11 @@ function renderStep() {
 
     if (g.youtubeId) {
       el.classList.add("has-video");
-      el.onmouseenter = e => showVideoPreview(g.youtubeId, e.clientX, e.clientY);
-      el.onmouseleave = hideVideoPreview;
+      el.onmouseenter = e => {
+        showVideoPreview(grenade.youtubeId, e.clientX, e.clientY);
+      };
+      
+      el.onmouseleave = hideVideoPreviewDelayed;
     }
 
     el.ondblclick = () => openGrenadeEditor(g);
@@ -389,22 +392,35 @@ function makeDraggable(el, data) {
 // =======================
 // 🔹 VIDEO PREVIEW
 // =======================
-function showVideoPreview(id, x, y) {
-  previewLock = true;
-  videoFrame.src = `https://www.youtube.com/embed/${id}`;
-  videoPreview.style.left = x + 12 + "px";
-  videoPreview.style.top = y + 12 + "px";
-  videoPreview.classList.remove("hidden");
+let previewHover = false;
+
+function showVideoPreview(youtubeId, x, y) {
+  const preview = document.getElementById("video-preview");
+  const frame = document.getElementById("video-frame");
+
+  frame.src = `https://www.youtube.com/embed/${youtubeId}`;
+  preview.style.left = `${x + 12}px`;
+  preview.style.top = `${y + 12}px`;
+  preview.classList.remove("hidden");
+
+  previewHover = true;
+}
+
+function hideVideoPreviewDelayed() {
+  previewHover = false;
+  setTimeout(() => {
+    if (!previewHover) {
+      hideVideoPreview();
+    }
+  }, 200);
 }
 
 function hideVideoPreview() {
-  previewLock = false;
-  setTimeout(() => {
-    if (!previewLock) {
-      videoFrame.src = "";
-      videoPreview.classList.add("hidden");
-    }
-  }, 200);
+  const preview = document.getElementById("video-preview");
+  const frame = document.getElementById("video-frame");
+
+  frame.src = "";
+  preview.classList.add("hidden");
 }
 
 // =======================
@@ -447,3 +463,21 @@ async function loadStepFromDB(step) {
   ensureStepState(step);
   renderStep();
 }
+// =======================
+// 🔹 VIDEO PREVIEW HOVER FIX
+// =======================
+let previewHover = false;
+
+const videoPreview = document.getElementById("video-preview");
+
+if (videoPreview) {
+  videoPreview.addEventListener("mouseenter", () => {
+    previewHover = true;
+  });
+
+  videoPreview.addEventListener("mouseleave", () => {
+    previewHover = false;
+    hideVideoPreviewDelayed();
+  });
+}
+
