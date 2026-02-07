@@ -234,11 +234,6 @@ main {
   color: var(--text-muted);
 }
 
-.empty-editor h3 {
-  margin-bottom: 4px;
-  font-weight: 500;
-}
-
 /* =========================
    COMMAND BAR (TOOLS)
 ========================= */
@@ -274,71 +269,28 @@ main {
 }
 
 /* =========================
-   MAP
+   MAP (FIXED)
 ========================= */
 #map-container {
   position: relative;
+  width: 1600px;
+  max-width: 100%;
   line-height: 0;
+  overflow: hidden;
+  background: black;
 }
 
 #map {
   display: block;
+  width: 100%;
+  height: auto;
   pointer-events: none;
   position: relative;
-  z-index: 1;   
-}
-
-.player {
-  z-index: 30;
-}
-
-.grenade {
-  z-index: 40;
-}
-
-.bomb {
-  z-index: 50;
+  z-index: 1;
 }
 
 /* =========================
-   STEPS (PRODUCTIVITY STYLE)
-========================= */
-#steps {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-#steps strong {
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-#stepButtons {
-  display: flex;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-#stepButtons button {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 4px 6px;
-  font-size: 13px;
-  border-radius: 4px;
-}
-
-#stepButtons button:hover {
-  background: var(--bg-item);
-}
-
-#stepButtons button.active {
-  background: var(--primary);
-  color: white;
-}
-
-/* =========================
-   MAP ELEMENTS
+   MAP ELEMENTS (LAYERS)
 ========================= */
 .player,
 .grenade,
@@ -347,35 +299,42 @@ main {
   cursor: grab;
 }
 
-/* PLAYER */
-.player {
-  width: 24px;
-  height: 24px;
-  background: no-repeat center / contain;
-  background-image: url("data:image/svg+xml;utf8,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
-      <circle cx='12' cy='7' r='4' fill='%23e53935'/>
-      <rect x='8' y='12' width='8' height='10' rx='3' fill='%23e53935'/>
-    </svg>");
-}
-
+.player { z-index: 30; }
+.grenade { z-index: 40; }
+.bomb { z-index: 50; }
 
 /* =========================
-   GRENADES (BASE)
+   PLAYER (HUMAN SHAPE)
+========================= */
+.player {
+  width: 18px;
+  height: 24px;
+  background: #e53935;
+  border-radius: 4px;
+}
+
+.player::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  background: #e53935;
+  border-radius: 50%;
+}
+
+/* =========================
+   GRENADES
 ========================= */
 .grenade {
-  position: absolute;
   width: 22px;
   height: 22px;
   border-radius: 50%;
   border: 1px solid #555;
-  background-color: #9e9e9e; /* fallback */
-  z-index: 20; /* 🔥 acima do mapa */
+  background-color: #9e9e9e;
 }
 
-/* =========================
-   GRENADES (TYPE COLORS)
-========================= */
 .grenade.smoke {
   background-color: #9e9e9e;
 }
@@ -392,7 +351,9 @@ main {
   background-color: #66bb6a;
 }
 
-/* BOMB */
+/* =========================
+   BOMB
+========================= */
 .bomb {
   width: 26px;
   height: 26px;
@@ -402,6 +363,36 @@ main {
 
 .bomb.planted {
   opacity: 0.6;
+}
+
+/* =========================
+   STEPS
+========================= */
+#steps {
+  margin-top: 10px;
+}
+
+#stepButtons {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+#stepButtons button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+#stepButtons button:hover {
+  background: var(--bg-item);
+}
+
+#stepButtons button.active {
+  background: var(--primary);
+  color: white;
 }
 
 /* =========================
@@ -454,7 +445,9 @@ main {
   font-size: 13px;
 }
 
-/* Impede seleção durante drag */
+/* =========================
+   UX HELPERS
+========================= */
 #map-container,
 #map-container * {
   user-select: none;
