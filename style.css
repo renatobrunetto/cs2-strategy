@@ -173,7 +173,10 @@ main {
 }
 
 .strategy-name {
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.3;
 }
 
 .strategy-actions {
