@@ -17,7 +17,6 @@ let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
-const mapContainer = document.getElementById("map-container");
 
 // =======================
 // 🔹 DOM REFERENCES
