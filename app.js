@@ -90,7 +90,7 @@ async function selectStrategy(id){
   editorEmpty.style.display="none";
   editorContent.style.display="block";
   await loadStep();
-  renderSteps();
+  renderStep();
 }
 
 // STEP
