@@ -19,6 +19,27 @@ const stepStates = {};
 
 const mapContainer = document.getElementById("map-container");
 
+// =======================
+// 🔹 DOM REFERENCES
+// =======================
+const loginView = document.getElementById("login-view");
+const appView = document.getElementById("app-view");
+
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userName = document.getElementById("userName");
+
+const myPrivateStrategyList = document.getElementById("myPrivateStrategyList");
+const myPublicStrategyList = document.getElementById("myPublicStrategyList");
+const publicStrategyList = document.getElementById("publicStrategyList");
+
+const editorEmpty = document.getElementById("editor-empty");
+const editorContent = document.getElementById("editor-content");
+
+const addPlayerBtn = document.getElementById("addPlayerBtn");
+const mapContainer = document.getElementById("map-container");
+
+
 // LOGIN
 loginBtn.onclick = () => signInWithPopup(auth, provider);
 logoutBtn.onclick = () => signOut(auth);
