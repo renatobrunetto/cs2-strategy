@@ -334,6 +334,7 @@ main {
   line-height: 0;
   overflow: hidden;
   background: black;
+  aspect-ratio: 16 / 9;   /* 🔥 chave */
 }
 
 #map {
