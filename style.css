@@ -413,3 +413,11 @@ main {
   border-left: 4px solid var(--primary);
   font-size: 13px;
 }
+
+/* Impede seleção durante drag */
+#map-container,
+#map-container * {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
