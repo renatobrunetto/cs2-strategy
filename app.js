@@ -467,8 +467,6 @@ async function loadStepFromDB(step) {
 // 🔹 VIDEO PREVIEW HOVER FIX
 // =======================
 
-const videoPreview = document.getElementById("video-preview");
-
 if (videoPreview) {
   videoPreview.addEventListener("mouseenter", () => {
     previewHover = true;
