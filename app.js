@@ -86,8 +86,8 @@ onAuthStateChanged(auth, async (user) => {
   if (!user) {
     loginView.style.display = "flex";
     appView.style.display = "none";
-    return;
     hideEditor();
+    return;    
   }
 
   // LOGADO
@@ -116,26 +116,6 @@ async function loadStrategies() {
   myPrivateList.innerHTML = "";
   myPublicList.innerHTML = "";
   publicList.innerHTML = "";
-  if (!myPrivateList.children.length) {
-  myPrivateList.innerHTML = `
-    <div class="empty-state">
-      Você ainda não criou estratégias privadas
-    </div>`;
-}
-
-if (!myPublicList.children.length) {
-  myPublicList.innerHTML = `
-    <div class="empty-state">
-      Nenhuma estratégia pública sua ainda
-    </div>`;
-}
-
-if (!publicList.children.length) {
-  publicList.innerHTML = `
-    <div class="empty-state">
-      Nenhuma estratégia pública disponível
-    </div>`;
-}
 
   const myQuery = query(
     collection(db, "strategies"),
@@ -159,7 +139,30 @@ if (!publicList.children.length) {
       renderStrategy(docSnap, false);
     }
   });
+
+  // 🔹 EMPTY STATES (APÓS renderizar)
+  if (!myPrivateList.children.length) {
+    myPrivateList.innerHTML = `
+      <div class="empty-state">
+        Você ainda não criou estratégias privadas
+      </div>`;
+  }
+
+  if (!myPublicList.children.length) {
+    myPublicList.innerHTML = `
+      <div class="empty-state">
+        Nenhuma estratégia pública sua ainda
+      </div>`;
+  }
+
+  if (!publicList.children.length) {
+    publicList.innerHTML = `
+      <div class="empty-state">
+        Nenhuma estratégia pública disponível
+      </div>`;
+  }
 }
+
 
 // =======================
 // 🔹 RENDER STRATEGY CARD
@@ -240,8 +243,11 @@ function renderStrategy(docSnap, isMine) {
 
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
-    showEditor();
     currentStep = 1;
+    // 🔥 RESET DE ESTADO
+    Object.keys(stepStates).forEach(k => delete stepStates[k]);
+
+    showEditor();
 
     document.querySelectorAll(".strategy-card")
       .forEach(c => c.classList.remove("active"));
