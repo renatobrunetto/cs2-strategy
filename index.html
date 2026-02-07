@@ -3,158 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <title>CS2 Strategy Builder</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css?v=10" />
-
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<!-- =========================
-     LOGIN VIEW
-========================= -->
+<!-- LOGIN -->
 <div id="login-view" class="centered">
   <div class="login-card">
-
-    <img
-      src="assets/logo-sdk-cs2.png"
-      alt="SDK CS2 Strategy"
-      class="login-logo"
-    />
-
     <h1>CS2 Strategy Builder</h1>
-    <p>Crie, edite e compartilhe estratégias</p>
-
-    <button id="loginBtn" class="primary">
-      Entrar com Google
-    </button>
-
+    <p>Crie e edite estratégias</p>
+    <button id="loginBtn" class="primary">Entrar com Google</button>
   </div>
 </div>
 
-<!-- =========================
-     APP VIEW
-========================= -->
+<!-- APP -->
 <section id="app-view" style="display:none">
 
-  <!-- HEADER -->
 <header class="app-header">
   <div class="header-left">
-    <img
-      src="assets/logo-sdk-cs2-header.png"
-      alt="SDK CS2 Strategy"
-      class="header-logo"
-    />
+    <span class="logo-text">CS2 Strategy Builder</span>
   </div>
-
   <div class="user-menu">
     <span id="userName"></span>
     <button id="logoutBtn">Sair</button>
   </div>
 </header>
 
-  <!-- MAIN LAYOUT -->
-  <main>
+<main>
 
-    <!-- SIDEBAR -->
-    <aside id="strategies">
+<!-- SIDEBAR -->
+<aside id="strategies">
+  <div id="create-strategy">
+    <input id="newStrategyName" placeholder="Nova estratégia" />
+    <button id="createStrategyBtn">+</button>
+  </div>
 
-      <!-- CREATE STRATEGY -->
-      <div id="create-strategy">
-        <input
-          id="newStrategyName"
-          type="text"
-          placeholder="Nova estratégia"
-        />
-        <button id="createStrategyBtn">+</button>
-      </div>
+  <h4>Privadas</h4>
+  <div id="myPrivateStrategyList" class="strategy-list"></div>
 
-      <!-- PRIVATE -->
-      <h4>Privadas</h4>
-      <div
-        id="myPrivateStrategyList"
-        class="strategy-list"
-      ></div>
+  <h4>Públicas</h4>
+  <div id="myPublicStrategyList" class="strategy-list"></div>
 
-      <!-- PUBLIC (OWN) -->
-      <h4>Públicas</h4>
-      <div
-        id="myPublicStrategyList"
-        class="strategy-list"
-      ></div>
+  <h4>Explorar</h4>
+  <div id="publicStrategyList" class="strategy-list"></div>
+</aside>
 
-      <!-- EXPLORE -->
-      <h4>Explorar</h4>
-      <div
-        id="publicStrategyList"
-        class="strategy-list"
-      ></div>
+<!-- EDITOR -->
+<section id="editor">
+  <div id="editor-empty" class="empty-editor">
+    <h3>Nenhuma estratégia selecionada</h3>
+  </div>
 
-    </aside>
+  <div id="editor-content" style="display:none">
 
-    <!-- EDITOR -->
-    <section id="editor">
+    <!-- TOOLS -->
+    <div class="command-bar">
+      <span class="tools-label">Adicionar:</span>
+      <button id="addPlayerBtn" class="cmd-btn">Player</button>
+      <button data-type="smoke" class="cmd-btn">Smoke</button>
+      <button data-type="flash" class="cmd-btn">Flash</button>
+      <button data-type="molotov" class="cmd-btn">Molotov</button>
+      <button data-type="he" class="cmd-btn">HE</button>
+      <button data-type="bomb" class="cmd-btn">Bomba</button>
+    </div>
 
-      <!-- EMPTY STATE -->
-      <div id="editor-empty" class="empty-editor">
-        <h3>Nenhuma estratégia selecionada</h3>
-        <p>Escolha ou crie uma estratégia para começar</p>
-      </div>
+    <!-- MAP -->
+    <div id="map-container">
+      <img id="map" src="assets/dust2.png" draggable="false" />
+    </div>
 
-      <!-- EDITOR CONTENT -->
-      <div id="editor-content" style="display:none">
+    <!-- STEPS -->
+    <div id="steps">
+      <strong>Passos</strong>
+      <div id="stepButtons"></div>
+    </div>
 
-        <!-- TOOLS -->
-        <div id="tools" class="command-bar">
-          <span class="tools-label">Adicionar:</span>
-        
-          <button data-type="player" class="cmd-btn">Player</button>
-          <button data-type="smoke" class="cmd-btn">Smoke</button>
-          <button data-type="flash" class="cmd-btn">Flash</button>
-          <button data-type="molotov" class="cmd-btn">Molotov</button>
-          <button data-type="he" class="cmd-btn">HE</button>
-          <button data-type="bomb" class="cmd-btn">Bomba</button>
-        </div>
-
-        <!-- MAP -->
-        <div id="map-container">
-          <img
-            id="map"
-            src="assets/dust2.png"
-            draggable="false"
-          />
-        </div>
-
-        <!-- STEPS -->
-        <div id="steps">
-          <strong>Passos</strong>
-          <div id="stepButtons"></div>
-        </div>
-
-      </div>
-    </section>
-
-  </main>
+  </div>
 </section>
 
-<!-- LOADER -->
+</main>
+</section>
+
 <div id="loader" class="hidden">
   <div class="spinner"></div>
 </div>
 
-<!-- TOASTS -->
-<div id="toast-container"></div>
-
-<div id="video-preview" class="video-preview hidden">
-  <iframe
-    id="video-frame"
-    allowfullscreen
-  ></iframe>
-</div>
-<!-- JS -->
 <script type="module" src="app.js"></script>
-  
 </body>
 </html>
