@@ -45,7 +45,9 @@ let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
-let videoHoverActive = false;
+// VIDEO HOVER STATE
+let hoverGrenade = false;
+let hoverPreview = false;
 
 // =======================
 // 🔹 DOM
@@ -70,6 +72,10 @@ const editorContent = document.getElementById("editor-content");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
 
+// VIDEO PREVIEW
+const videoPreview = document.getElementById("video-preview");
+const videoFrame = document.getElementById("video-frame");
+
 // =======================
 // 🔹 AUTH
 // =======================
@@ -85,7 +91,7 @@ logoutBtn.onclick = async () => {
   hideLoader();
 };
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async user => {
   if (!user) {
     loginView.style.display = "flex";
     appView.style.display = "none";
@@ -150,9 +156,9 @@ function renderStrategy(docSnap, isMine) {
   if (isMine) {
     const toggleBtn = document.createElement("button");
     toggleBtn.textContent = data.isPublic ? "🌐" : "🔒";
-    toggleBtn.setAttribute("data-tooltip", "Alterar visibilidade");
+    toggleBtn.dataset.tooltip = "Alterar visibilidade";
 
-    toggleBtn.onclick = async (e) => {
+    toggleBtn.onclick = async e => {
       e.stopPropagation();
       await updateDoc(doc(db, "strategies", docSnap.id), {
         isPublic: !data.isPublic
@@ -163,14 +169,13 @@ function renderStrategy(docSnap, isMine) {
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.classList.add("delete");
-    deleteBtn.setAttribute("data-tooltip", "Excluir estratégia");
+    deleteBtn.dataset.tooltip = "Excluir estratégia";
 
-    deleteBtn.onclick = async (e) => {
+    deleteBtn.onclick = async e => {
       e.stopPropagation();
       if (!confirm("Excluir estratégia?")) return;
-
       await setDoc(doc(db, "strategies", docSnap.id), {}, { merge: false });
-      if (currentStrategyId === docSnap.id) hideEditor();
+      hideEditor();
       loadStrategies();
     };
 
@@ -205,7 +210,28 @@ function renderStrategy(docSnap, isMine) {
 }
 
 // =======================
-// 🔹 EDITOR
+// 🔹 CREATE STRATEGY
+// =======================
+createStrategyBtn.onclick = async () => {
+  const name = newStrategyInput.value.trim();
+  if (!name) return;
+
+  showLoader();
+  await addDoc(collection(db, "strategies"), {
+    name,
+    map: "dust2",
+    ownerId: currentUserId,
+    isPublic: false,
+    createdAt: new Date()
+  });
+  hideLoader();
+
+  newStrategyInput.value = "";
+  loadStrategies();
+};
+
+// =======================
+// 🔹 EDITOR VISIBILITY
 // =======================
 function showEditor() {
   editorEmpty.style.display = "none";
@@ -240,9 +266,10 @@ function loadSteps() {
 }
 
 function highlightActiveStep() {
-  document.querySelectorAll("#stepButtons button").forEach(btn => {
-    btn.classList.toggle("active", Number(btn.textContent) === currentStep);
-  });
+  document.querySelectorAll("#stepButtons button")
+    .forEach(btn =>
+      btn.classList.toggle("active", Number(btn.textContent) === currentStep)
+    );
 }
 
 // =======================
@@ -303,7 +330,9 @@ document.querySelectorAll("[data-type]").forEach(btn => {
 // 🔹 RENDER STEP
 // =======================
 function renderStep() {
-  mapContainer.querySelectorAll(".player, .grenade, .bomb").forEach(e => e.remove());
+  mapContainer.querySelectorAll(".player, .grenade, .bomb")
+    .forEach(el => el.remove());
+
   const state = stepStates[currentStep];
   if (!state) return;
 
@@ -314,12 +343,12 @@ function renderStep() {
     el.style.left = `${player.x}px`;
     el.style.top = `${player.y}px`;
 
-    el.oncontextmenu = async e => {
+    el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.players = state.players.filter(p => p.id !== player.id);
       renderStep();
       await saveCurrentStep();
-    };
+    });
 
     makeDraggable(el, player);
     mapContainer.appendChild(el);
@@ -333,28 +362,28 @@ function renderStep() {
     el.style.top = `${grenade.y}px`;
 
     if (grenade.youtubeId) {
-      el.classList.add("has-video");
-
       el.addEventListener("mouseenter", () => {
-        videoHoverActive = true;
+        hoverGrenade = true;
         showVideoPreview(grenade.youtubeId, el);
       });
 
       el.addEventListener("mouseleave", () => {
-        setTimeout(() => {
-          if (!videoHoverActive) hideVideoPreview();
-        }, 200);
+        hoverGrenade = false;
+        setTimeout(checkHidePreview, 150);
       });
     }
 
-    el.ondblclick = () => openGrenadeEditor(grenade);
+    el.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      openGrenadeEditor(grenade);
+    });
 
-    el.oncontextmenu = async e => {
+    el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.grenades = state.grenades.filter(g => g.id !== grenade.id);
       renderStep();
       await saveCurrentStep();
-    };
+    });
 
     makeDraggable(el, grenade);
     mapContainer.appendChild(el);
@@ -367,18 +396,12 @@ function renderStep() {
     el.style.left = `${state.bomb.x}px`;
     el.style.top = `${state.bomb.y}px`;
 
-    el.ondblclick = async () => {
-      state.bomb.planted = !state.bomb.planted;
-      renderStep();
-      await saveCurrentStep();
-    };
-
-    el.oncontextmenu = async e => {
+    el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.bomb = null;
       renderStep();
       await saveCurrentStep();
-    };
+    });
 
     makeDraggable(el, state.bomb);
     mapContainer.appendChild(el);
@@ -390,76 +413,99 @@ function renderStep() {
 // =======================
 function makeDraggable(el, data) {
   let dragging = false;
-  let ox = 0, oy = 0;
+  let ox = 0;
+  let oy = 0;
 
-  el.onmousedown = e => {
+  el.addEventListener("mousedown", e => {
     dragging = true;
     ox = e.offsetX;
     oy = e.offsetY;
-  };
+  });
 
-  document.onmousemove = e => {
+  document.addEventListener("mousemove", e => {
     if (!dragging) return;
-    const r = mapContainer.getBoundingClientRect();
+    const rect = mapContainer.getBoundingClientRect();
 
-    data.x = Math.max(0, Math.min(e.clientX - r.left - ox, r.width - el.offsetWidth));
-    data.y = Math.max(0, Math.min(e.clientY - r.top - oy, r.height - el.offsetHeight));
+    let x = e.clientX - rect.left - ox;
+    let y = e.clientY - rect.top - oy;
 
-    el.style.left = `${data.x}px`;
-    el.style.top = `${data.y}px`;
-  };
+    x = Math.max(0, Math.min(x, rect.width - el.offsetWidth));
+    y = Math.max(0, Math.min(y, rect.height - el.offsetHeight));
 
-  document.onmouseup = async () => {
+    data.x = x;
+    data.y = y;
+
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+  });
+
+  document.addEventListener("mouseup", async () => {
     if (!dragging) return;
     dragging = false;
     await saveCurrentStep();
-  };
+  });
 }
 
 // =======================
 // 🔹 VIDEO PREVIEW
 // =======================
-function showVideoPreview(id, anchor) {
-  let preview = document.getElementById("video-preview");
-  let frame = document.getElementById("video-frame");
+videoPreview.addEventListener("mouseenter", () => {
+  hoverPreview = true;
+});
 
-  if (!preview) {
-    preview = document.createElement("div");
-    preview.id = "video-preview";
-    preview.innerHTML = `<iframe id="video-frame" allowfullscreen></iframe>`;
-    document.body.appendChild(preview);
+videoPreview.addEventListener("mouseleave", () => {
+  hoverPreview = false;
+  setTimeout(checkHidePreview, 150);
+});
 
-    preview.onmouseenter = () => videoHoverActive = true;
-    preview.onmouseleave = () => {
-      videoHoverActive = false;
-      hideVideoPreview();
-    };
-  }
-
-  frame = preview.querySelector("iframe");
-  frame.src = `https://www.youtube.com/embed/${id}`;
-
-  const r = anchor.getBoundingClientRect();
-  preview.style.left = `${r.right + 10}px`;
-  preview.style.top = `${r.top}px`;
-  preview.classList.remove("hidden");
+function showVideoPreview(youtubeId, el) {
+  const rect = el.getBoundingClientRect();
+  videoFrame.src = `https://www.youtube.com/embed/${youtubeId}`;
+  videoPreview.style.left = `${rect.right + 12}px`;
+  videoPreview.style.top = `${rect.top}px`;
+  videoPreview.classList.remove("hidden");
 }
 
 function hideVideoPreview() {
-  const preview = document.getElementById("video-preview");
-  if (!preview) return;
-  preview.querySelector("iframe").src = "";
-  preview.classList.add("hidden");
+  videoFrame.src = "";
+  videoPreview.classList.add("hidden");
+}
+
+function checkHidePreview() {
+  if (!hoverGrenade && !hoverPreview) {
+    hideVideoPreview();
+  }
 }
 
 // =======================
 // 🔹 GRENADE EDITOR
 // =======================
 function openGrenadeEditor(grenade) {
-  const url = prompt("URL do vídeo do YouTube:", grenade.youtubeId || "");
-  grenade.youtubeId = extractYoutubeId(url);
-  saveCurrentStep();
-  renderStep();
+  const modal = document.getElementById("grenade-modal");
+  if (!modal) return;
+
+  const input = modal.querySelector("#grenadeVideoInput");
+
+  input.value = grenade.youtubeId
+    ? `https://www.youtube.com/watch?v=${grenade.youtubeId}`
+    : "";
+
+  modal.classList.add("open");
+
+  modal.querySelector("#saveGrenadeVideo").onclick = async () => {
+    grenade.youtubeId = extractYoutubeId(input.value);
+    modal.classList.remove("open");
+    await saveCurrentStep();
+    renderStep();
+  };
+
+  modal.querySelector("#removeGrenadeVideo").onclick = async () => {
+    grenade.youtubeId = null;
+    input.value = "";
+    modal.classList.remove("open");
+    await saveCurrentStep();
+    renderStep();
+  };
 }
 
 function extractYoutubeId(url) {
