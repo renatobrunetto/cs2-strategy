@@ -52,7 +52,7 @@ button {
   background: var(--bg-panel);
   padding: 32px;
   border-radius: 8px;
-  width: 320px;
+  width: 640px;
   text-align: center;
 }
 
