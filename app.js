@@ -66,19 +66,38 @@ const mapContainer = document.getElementById("map-container");
 // =======================
 // 🔹 AUTH
 // =======================
+const loginView = document.getElementById("login-view");
+const appView = document.getElementById("app-view");
+const userNameEl = document.getElementById("userName");
+const logoutBtn = document.getElementById("logoutBtn");
+
+// LOGIN
 loginBtn.onclick = async () => {
   await signInWithPopup(auth, provider);
 };
 
+// AUTH STATE
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
+  if (!user) {
+    loginView.style.display = "flex";
+    appView.style.display = "none";
+    return;
+  }
 
+  // LOGADO
   currentUserId = user.uid;
-  status.textContent = `Logado como ${user.displayName}`;
-  loginBtn.style.display = "none";
+  userNameEl.textContent = user.displayName;
+
+  loginView.style.display = "none";
+  appView.style.display = "block";
 
   await loadStrategies();
 });
+
+// LOGOUT
+logoutBtn.onclick = async () => {
+  await auth.signOut();
+};
 
 // =======================
 // 🔹 LOAD STRATEGIES
