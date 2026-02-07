@@ -63,6 +63,9 @@ const addBombBtn = document.getElementById("addBombBtn");
 
 const mapContainer = document.getElementById("map-container");
 
+const editorEmpty = document.getElementById("editor-empty");
+const editorContent = document.getElementById("editor-content");
+
 // =======================
 // 🔹 AUTH
 // =======================
@@ -84,6 +87,7 @@ onAuthStateChanged(auth, async (user) => {
     loginView.style.display = "flex";
     appView.style.display = "none";
     return;
+    hideEditor();
   }
 
   // LOGADO
@@ -207,6 +211,10 @@ function renderStrategy(docSnap, isMine) {
 
     deleteBtn.onclick = async (e) => {
       e.stopPropagation();
+      if (currentStrategyId === docSnap.id) {
+        currentStrategyId = null;
+        hideEditor();
+      }
       if (!confirm("Excluir esta estratégia?")) return;
 
       await setDoc(
@@ -232,6 +240,7 @@ function renderStrategy(docSnap, isMine) {
 
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
+    showEditor();
     currentStep = 1;
 
     document.querySelectorAll(".strategy-card")
@@ -518,3 +527,14 @@ function showLoader() {
 function hideLoader() {
   document.getElementById("loader").classList.add("hidden");
 }
+
+function showEditor() {
+  editorEmpty.style.display = "none";
+  editorContent.style.display = "block";
+}
+
+function hideEditor() {
+  editorContent.style.display = "none";
+  editorEmpty.style.display = "flex";
+}
+
