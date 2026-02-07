@@ -19,8 +19,7 @@ import {
   doc,
   setDoc,
   getDoc,
-  updateDoc,
-  deleteDoc
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =======================
@@ -45,48 +44,47 @@ let currentUserId = null;
 let currentStrategyId = null;
 let currentStep = 1;
 
+// stepStates[step] = { players: [], grenades: [], bomb: null }
 const stepStates = {};
-const SNAP_THRESHOLD = 6;
 
 // =======================
-// 🔹 DOM (SAFE)
+// 🔹 DOM REFERENCES
 // =======================
-const $ = id => document.getElementById(id);
+const loginView = document.getElementById("login-view");
+const appView = document.getElementById("app-view");
 
-const loginView = $("login-view");
-const appView = $("app-view");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userNameEl = document.getElementById("userName");
 
-const loginBtn = $("loginBtn");
-const logoutBtn = $("logoutBtn");
-const userNameEl = $("userName");
+const newStrategyInput = document.getElementById("newStrategyName");
+const createStrategyBtn = document.getElementById("createStrategyBtn");
 
-const newStrategyInput = $("newStrategyName");
-const createStrategyBtn = $("createStrategyBtn");
+const myPrivateList = document.getElementById("myPrivateStrategyList");
+const myPublicList = document.getElementById("myPublicStrategyList");
+const publicList = document.getElementById("publicStrategyList");
 
-const myPrivateList = $("myPrivateStrategyList");
-const myPublicList = $("myPublicStrategyList");
-const publicList = $("publicStrategyList");
+const editorEmpty = document.getElementById("editor-empty");
+const editorContent = document.getElementById("editor-content");
 
-const editorEmpty = $("editor-empty");
-const editorContent = $("editor-content");
-const mapContainer = $("map-container");
+const mapContainer = document.getElementById("map-container");
 
 // =======================
 // 🔹 AUTH
 // =======================
-loginBtn?.addEventListener("click", async () => {
+loginBtn.onclick = async () => {
   showLoader();
   await signInWithPopup(auth, provider);
   hideLoader();
-});
+};
 
-logoutBtn?.addEventListener("click", async () => {
+logoutBtn.onclick = async () => {
   showLoader();
   await signOut(auth);
   hideLoader();
-});
+};
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     loginView.style.display = "flex";
     appView.style.display = "none";
@@ -134,14 +132,17 @@ async function loadStrategies() {
     }
   });
 
-  if (!myPrivateList.children.length)
+  if (!myPrivateList.children.length) {
     myPrivateList.innerHTML = `<div class="empty-state">Sem estratégias privadas</div>`;
+  }
 
-  if (!myPublicList.children.length)
+  if (!myPublicList.children.length) {
     myPublicList.innerHTML = `<div class="empty-state">Sem estratégias públicas suas</div>`;
+  }
 
-  if (!publicList.children.length)
+  if (!publicList.children.length) {
     publicList.innerHTML = `<div class="empty-state">Nenhuma estratégia pública</div>`;
+  }
 }
 
 function renderStrategy(docSnap, isMine) {
@@ -161,7 +162,7 @@ function renderStrategy(docSnap, isMine) {
   if (isMine) {
     const toggleBtn = document.createElement("button");
     toggleBtn.textContent = "🔁";
-    toggleBtn.onclick = async e => {
+    toggleBtn.onclick = async (e) => {
       e.stopPropagation();
       await updateDoc(doc(db, "strategies", docSnap.id), {
         isPublic: !data.isPublic
@@ -171,11 +172,11 @@ function renderStrategy(docSnap, isMine) {
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
-    deleteBtn.onclick = async e => {
+    deleteBtn.onclick = async (e) => {
       e.stopPropagation();
       if (!confirm("Excluir estratégia?")) return;
 
-      await deleteDoc(doc(db, "strategies", docSnap.id));
+      await setDoc(doc(db, "strategies", docSnap.id), {}, { merge: false });
       if (currentStrategyId === docSnap.id) {
         currentStrategyId = null;
         hideEditor();
@@ -191,6 +192,7 @@ function renderStrategy(docSnap, isMine) {
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
     currentStep = 1;
+
     Object.keys(stepStates).forEach(k => delete stepStates[k]);
 
     document.querySelectorAll(".strategy-card")
@@ -213,7 +215,7 @@ function renderStrategy(docSnap, isMine) {
   }
 }
 
-createStrategyBtn?.addEventListener("click", async () => {
+createStrategyBtn.onclick = async () => {
   const name = newStrategyInput.value.trim();
   if (!name) return;
 
@@ -229,7 +231,7 @@ createStrategyBtn?.addEventListener("click", async () => {
 
   newStrategyInput.value = "";
   loadStrategies();
-});
+};
 
 // =======================
 // 🔹 EDITOR VISIBILITY
@@ -248,7 +250,7 @@ function hideEditor() {
 // 🔹 STEPS
 // =======================
 function loadSteps() {
-  const container = $("stepButtons");
+  const container = document.getElementById("stepButtons");
   container.innerHTML = "";
 
   for (let i = 1; i <= 10; i++) {
@@ -268,43 +270,47 @@ function loadSteps() {
 
 function highlightActiveStep() {
   document.querySelectorAll("#stepButtons button")
-    .forEach(btn =>
-      btn.classList.toggle("active", Number(btn.textContent) === currentStep)
-    );
+    .forEach(btn => {
+      btn.classList.toggle("active", Number(btn.textContent) === currentStep);
+    });
 }
 
 // =======================
 // 🔹 STEP STATE
 // =======================
 function ensureStepState(step) {
-  if (!stepStates[step]) stepStates[step] = {};
-  stepStates[step].players ||= [];
-  stepStates[step].grenades ||= [];
-  stepStates[step].bomb ||= null;
+  if (!stepStates[step]) {
+    stepStates[step] = { players: [], grenades: [], bomb: null };
+  }
 }
 
 // =======================
-// 🔹 TOOLS (UNIFIED)
+// 🔹 TOOLS (SINGLE SOURCE)
 // =======================
 document.querySelectorAll("[data-type]").forEach(btn => {
-  btn.addEventListener("click", async () => {
+  btn.onclick = async () => {
     if (!currentStrategyId) return;
 
-    const type = btn.dataset.type;
     ensureStepState(currentStep);
+    const type = btn.dataset.type;
 
+    // PLAYER
     if (type === "player") {
       stepStates[currentStep].players.push({
         id: `p${Date.now()}`,
         x: 60,
         y: 60
       });
-    } else if (type === "bomb") {
+    }
+    // BOMB
+    else if (type === "bomb") {
       stepStates[currentStep].bomb =
         stepStates[currentStep].bomb
           ? null
           : { x: 200, y: 200, planted: false };
-    } else {
+    }
+    // GRENADES
+    else {
       stepStates[currentStep].grenades.push({
         id: `g${Date.now()}`,
         type,
@@ -315,7 +321,7 @@ document.querySelectorAll("[data-type]").forEach(btn => {
 
     renderStep();
     await saveCurrentStep();
-  });
+  };
 });
 
 // =======================
@@ -328,38 +334,65 @@ function renderStep() {
   const state = stepStates[currentStep];
   if (!state) return;
 
-  state.players.forEach(p => createElement("player", p));
-  state.grenades.forEach(g => createElement(`grenade ${g.type}`, g));
+  // PLAYERS
+  state.players.forEach(player => {
+    const el = document.createElement("div");
+    el.className = "player";
+    el.style.left = `${player.x}px`;
+    el.style.top = `${player.y}px`;
 
-  if (state.bomb) createElement(state.bomb.planted ? "bomb planted" : "bomb", state.bomb);
-}
-
-function createElement(className, data) {
-  const el = document.createElement("div");
-  el.className = className;
-  el.style.left = `${data.x}px`;
-  el.style.top = `${data.y}px`;
-
-  el.addEventListener("contextmenu", async e => {
-    e.preventDefault();
-    const state = stepStates[currentStep];
-    state.players = state.players.filter(p => p !== data);
-    state.grenades = state.grenades.filter(g => g !== data);
-    if (state.bomb === data) state.bomb = null;
-    renderStep();
-    await saveCurrentStep();
-  });
-
-  if (className.includes("bomb")) {
-    el.addEventListener("dblclick", async () => {
-      data.planted = !data.planted;
+    el.addEventListener("contextmenu", async e => {
+      e.preventDefault();
+      state.players = state.players.filter(p => p.id !== player.id);
       renderStep();
       await saveCurrentStep();
     });
-  }
 
-  makeDraggable(el, data);
-  mapContainer.appendChild(el);
+    makeDraggable(el, player);
+    mapContainer.appendChild(el);
+  });
+
+  // GRENADES
+  state.grenades.forEach(grenade => {
+    const el = document.createElement("div");
+    el.className = `grenade ${grenade.type}`;
+    el.style.left = `${grenade.x}px`;
+    el.style.top = `${grenade.y}px`;
+
+    el.addEventListener("contextmenu", async e => {
+      e.preventDefault();
+      state.grenades = state.grenades.filter(g => g.id !== grenade.id);
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, grenade);
+    mapContainer.appendChild(el);
+  });
+
+  // BOMB
+  if (state.bomb) {
+    const el = document.createElement("div");
+    el.className = state.bomb.planted ? "bomb planted" : "bomb";
+    el.style.left = `${state.bomb.x}px`;
+    el.style.top = `${state.bomb.y}px`;
+
+    el.addEventListener("dblclick", async () => {
+      state.bomb.planted = !state.bomb.planted;
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    el.addEventListener("contextmenu", async e => {
+      e.preventDefault();
+      state.bomb = null;
+      renderStep();
+      await saveCurrentStep();
+    });
+
+    makeDraggable(el, state.bomb);
+    mapContainer.appendChild(el);
+  }
 }
 
 // =======================
@@ -371,7 +404,6 @@ function makeDraggable(el, data) {
   let oy = 0;
 
   el.addEventListener("mousedown", e => {
-    e.preventDefault();
     dragging = true;
     ox = e.offsetX;
     oy = e.offsetY;
@@ -382,25 +414,11 @@ function makeDraggable(el, data) {
     if (!dragging) return;
 
     const rect = mapContainer.getBoundingClientRect();
-    let x = e.clientX - rect.left - ox;
-    let y = e.clientY - rect.top - oy;
+    data.x = e.clientX - rect.left - ox;
+    data.y = e.clientY - rect.top - oy;
 
-    const maxX = rect.width - el.offsetWidth;
-    const maxY = rect.height - el.offsetHeight;
-
-    x = Math.max(0, Math.min(x, maxX));
-    y = Math.max(0, Math.min(y, maxY));
-
-    const centerX = (rect.width - el.offsetWidth) / 2;
-    const centerY = (rect.height - el.offsetHeight) / 2;
-
-    if (Math.abs(x - centerX) < SNAP_THRESHOLD) x = centerX;
-    if (Math.abs(y - centerY) < SNAP_THRESHOLD) y = centerY;
-
-    data.x = x;
-    data.y = y;
-    el.style.left = `${x}px`;
-    el.style.top = `${y}px`;
+    el.style.left = `${data.x}px`;
+    el.style.top = `${data.y}px`;
   });
 
   document.addEventListener("mouseup", async () => {
@@ -412,7 +430,7 @@ function makeDraggable(el, data) {
 }
 
 // =======================
-// 🔹 FIRESTORE
+// 🔹 FIRESTORE STEPS
 // =======================
 async function saveCurrentStep() {
   if (!currentStrategyId) return;
@@ -427,8 +445,10 @@ async function saveCurrentStep() {
 async function loadStepFromDB(step) {
   const ref = doc(db, "strategies", currentStrategyId, "steps", String(step));
   const snap = await getDoc(ref);
-  stepStates[step] = snap.exists() ? snap.data().state : {};
-  ensureStepState(step);
+  stepStates[step] = snap.exists()
+    ? snap.data().state
+    : { players: [], grenades: [], bomb: null };
+
   renderStep();
 }
 
@@ -436,9 +456,9 @@ async function loadStepFromDB(step) {
 // 🔹 UI HELPERS
 // =======================
 function showLoader() {
-  $("loader")?.classList.remove("hidden");
+  document.getElementById("loader").classList.remove("hidden");
 }
 
 function hideLoader() {
-  $("loader")?.classList.add("hidden");
+  document.getElementById("loader").classList.add("hidden");
 }
