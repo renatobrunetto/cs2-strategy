@@ -205,3 +205,6 @@ main { display:flex; height:calc(100vh - 48px); }
   opacity: 0.9;
   white-space: nowrap;
 }
+#loader.hidden {
+  display: none;
+}
