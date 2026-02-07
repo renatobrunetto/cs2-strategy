@@ -324,6 +324,25 @@ document.querySelectorAll("[data-type]").forEach(btn => {
 // =======================
 // 🔹 RENDER STEP
 // =======================
+function showVideoPreview(youtubeId, x, y) {
+  const preview = document.getElementById("video-preview");
+  const frame = document.getElementById("video-frame");
+  if (!preview || !frame) return;
+
+  frame.src = `https://www.youtube.com/embed/${youtubeId}`;
+  preview.style.left = `${x + 12}px`;
+  preview.style.top = `${y + 12}px`;
+  preview.classList.remove("hidden");
+}
+
+function hideVideoPreview() {
+  const preview = document.getElementById("video-preview");
+  const frame = document.getElementById("video-frame");
+  if (!preview || !frame) return;
+
+  frame.src = "";
+  preview.classList.add("hidden");
+}
 function renderStep() {
   mapContainer.querySelectorAll(".player, .grenade, .bomb").forEach(el => el.remove());
   const state = stepStates[currentStep];
@@ -353,23 +372,29 @@ function renderStep() {
     el.className = `grenade ${grenade.type}`;
     el.style.left = `${grenade.x}px`;
     el.style.top = `${grenade.y}px`;
-
+  
     if (grenade.youtubeId) {
       el.classList.add("has-video");
+  
+      el.addEventListener("mouseenter", e => {
+        showVideoPreview(grenade.youtubeId, e.clientX, e.clientY);
+      });
+  
+      el.addEventListener("mouseleave", hideVideoPreview);
     }
-
+  
     el.addEventListener("dblclick", e => {
       e.stopPropagation();
       openGrenadeEditor(grenade);
     });
-
+  
     el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.grenades = state.grenades.filter(g => g.id !== grenade.id);
       renderStep();
       await saveCurrentStep();
     });
-
+  
     makeDraggable(el, grenade);
     mapContainer.appendChild(el);
   });
@@ -398,6 +423,7 @@ function renderStep() {
     mapContainer.appendChild(el);
   }
 }
+
 
 // =======================
 // 🔹 DRAG
@@ -458,22 +484,13 @@ function openGrenadeEditor(grenade) {
   modal.classList.add("open");
 
   saveBtn.onclick = async () => {
-    const id = extractYoutubeId(input.value);
-    grenade.youtubeId = id;
+    grenade.youtubeId = extractYoutubeId(input.value);
     modal.classList.remove("open");
     await saveCurrentStep();
     renderStep();
   };
 
   removeBtn.onclick = async () => {
-    grenade.youtubeId = null;
-    input.value = "";
-    modal.classList.remove("open");
-    await saveCurrentStep();
-    renderStep();
-  };
-
-  modal.querySelector("#removeGrenadeVideo").onclick = async () => {
     grenade.youtubeId = null;
     input.value = "";
     modal.classList.remove("open");
