@@ -256,23 +256,30 @@ function draw(cls, data) {
   el.style.left = data.x + "px";
   el.style.top = data.y + "px";
 
- el.oncontextmenu = e => {
+el.oncontextmenu = e => {
+  e.preventDefault();
 
-  el.onmousedown = ev => {
-    const ox = ev.offsetX;
-    const oy = ev.offsetY;
-    document.onmousemove = m => {
-      data.x = m.clientX - mapContainer.offsetLeft - ox;
-      data.y = m.clientY - mapContainer.offsetTop - oy;
-      el.style.left = data.x + "px";
-      el.style.top = data.y + "px";
-    };
-    document.onmouseup = () => {
-      document.onmousemove = null;
-      document.onmouseup = null;
-      saveStep();
-    };
-  };
+  const state = stepStates[currentStep];
+
+  // 🔹 Se for player
+  if (cls === "player") {
+    state.players = state.players.filter(p => p !== data);
+  }
+
+  // 🔹 Se for granada
+  if (cls.startsWith("grenade")) {
+    state.grenades = state.grenades.filter(g => g !== data);
+  }
+
+  // 🔹 Se for bomba
+  if (cls === "bomb") {
+    state.bomb = null;
+  }
+
+  renderStep();
+  saveStep();
+};
+
 
   mapContainer.appendChild(el);
 }
