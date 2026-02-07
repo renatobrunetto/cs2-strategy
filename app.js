@@ -1,8 +1,31 @@
-// FIREBASE + AUTH
+// =======================
+// 🔹 FIREBASE + AUTH
+// =======================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// =======================
+// 🔹 INIT
+// =======================
 const app = initializeApp({
   apiKey: "AIzaSyAEX1MOFqLp1UDO8SfN4oMqDQx_8NhEH8w",
   authDomain: "cs2-strategy.firebaseapp.com",
@@ -13,13 +36,16 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// =======================
+// 🔹 STATE
+// =======================
+let currentUser = null;
 let currentStrategyId = null;
 let currentStep = 1;
 const stepStates = {};
 
-
 // =======================
-// 🔹 DOM REFERENCES
+// 🔹 DOM
 // =======================
 const loginView = document.getElementById("login-view");
 const appView = document.getElementById("app-view");
@@ -27,6 +53,9 @@ const appView = document.getElementById("app-view");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userName = document.getElementById("userName");
+
+const newStrategyInput = document.getElementById("newStrategyName");
+const createStrategyBtn = document.getElementById("createStrategyBtn");
 
 const myPrivateStrategyList = document.getElementById("myPrivateStrategyList");
 const myPublicStrategyList = document.getElementById("myPublicStrategyList");
@@ -38,24 +67,20 @@ const editorContent = document.getElementById("editor-content");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
 
-
-// LOGIN
+// =======================
+// 🔹 AUTH
+// =======================
 loginBtn.onclick = () => signInWithPopup(auth, provider);
 logoutBtn.onclick = () => signOut(auth);
 
-function hideLoader() {
-  document.getElementById("loader")?.classList.add("hidden");
-}
-
 onAuthStateChanged(auth, async user => {
-  hideLoader(); // 🔴 GARANTE que nunca fique preso
-
   if (!user) {
     loginView.style.display = "flex";
     appView.style.display = "none";
     return;
   }
 
+  currentUser = user;
   loginView.style.display = "none";
   appView.style.display = "block";
   userName.textContent = user.displayName;
@@ -63,115 +88,206 @@ onAuthStateChanged(auth, async user => {
   await loadStrategies();
 });
 
-// STRATEGIES
+// =======================
+// 🔹 STRATEGIES
+// =======================
 async function loadStrategies() {
   myPrivateStrategyList.innerHTML = "";
   myPublicStrategyList.innerHTML = "";
   publicStrategyList.innerHTML = "";
 
-  const mine = await getDocs(query(collection(db,"strategies"), where("ownerId","==",auth.currentUser.uid)));
-  mine.forEach(d => renderStrategy(d,true));
+  const mineSnap = await getDocs(
+    query(collection(db, "strategies"), where("ownerId", "==", currentUser.uid))
+  );
 
-  const pub = await getDocs(query(collection(db,"strategies"), where("isPublic","==",true)));
-  pub.forEach(d => d.data().ownerId !== auth.currentUser.uid && renderStrategy(d,false));
+  mineSnap.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.isPublic) {
+      renderStrategy(docSnap, myPublicStrategyList, true);
+    } else {
+      renderStrategy(docSnap, myPrivateStrategyList, true);
+    }
+  });
+
+  const publicSnap = await getDocs(
+    query(collection(db, "strategies"), where("isPublic", "==", true))
+  );
+
+  publicSnap.forEach(docSnap => {
+    if (docSnap.data().ownerId !== currentUser.uid) {
+      renderStrategy(docSnap, publicStrategyList, false);
+    }
+  });
 }
 
-function renderStrategy(docSnap,isMine){
-  const c=document.createElement("div");
-  c.className="strategy-card";
-  c.textContent=docSnap.data().name;
-  c.onclick=()=>selectStrategy(docSnap.id);
-  (isMine?myPrivateStrategyList:publicStrategyList).appendChild(c);
+function renderStrategy(docSnap, container, isMine) {
+  const data = docSnap.data();
+
+  const card = document.createElement("div");
+  card.className = "strategy-card";
+
+  const name = document.createElement("div");
+  name.className = "strategy-info";
+  name.textContent = data.name;
+
+  card.appendChild(name);
+
+  if (isMine) {
+    const actions = document.createElement("div");
+    actions.className = "strategy-actions";
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.textContent = data.isPublic ? "🌐" : "🔒";
+    toggleBtn.title = "Alterar visibilidade";
+    toggleBtn.onclick = async e => {
+      e.stopPropagation();
+      await updateDoc(doc(db, "strategies", docSnap.id), {
+        isPublic: !data.isPublic
+      });
+      loadStrategies();
+    };
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.title = "Excluir estratégia";
+    deleteBtn.onclick = async e => {
+      e.stopPropagation();
+      if (!confirm("Excluir esta estratégia?")) return;
+      await deleteDoc(doc(db, "strategies", docSnap.id));
+      if (currentStrategyId === docSnap.id) {
+        currentStrategyId = null;
+        editorContent.style.display = "none";
+        editorEmpty.style.display = "flex";
+      }
+      loadStrategies();
+    };
+
+    actions.append(toggleBtn, deleteBtn);
+    card.appendChild(actions);
+  }
+
+  card.onclick = async () => {
+    currentStrategyId = docSnap.id;
+    currentStep = 1;
+    editorEmpty.style.display = "none";
+    editorContent.style.display = "block";
+    await loadStep();
+  };
+
+  container.appendChild(card);
 }
 
-async function selectStrategy(id){
-  currentStrategyId=id;
-  currentStep=1;
-  editorEmpty.style.display="none";
-  editorContent.style.display="block";
-  await loadStep();
-  renderStep();
+// =======================
+// 🔹 CREATE STRATEGY
+// =======================
+createStrategyBtn.onclick = async () => {
+  const name = newStrategyInput.value.trim();
+  if (!name) return;
+
+  await addDoc(collection(db, "strategies"), {
+    name,
+    ownerId: currentUser.uid,
+    isPublic: false,
+    createdAt: new Date()
+  });
+
+  newStrategyInput.value = "";
+  loadStrategies();
+};
+
+// =======================
+// 🔹 STEPS / MAP (inalterado)
+// =======================
+function ensureState() {
+  if (!stepStates[currentStep]) {
+    stepStates[currentStep] = { players: [], grenades: [], bomb: null };
+  }
 }
 
-// STEP
-function ensureState(){
-  if(!stepStates[currentStep]) stepStates[currentStep]={players:[],grenades:[],bomb:null};
-}
-
-addPlayerBtn.onclick=()=>{
+addPlayerBtn.onclick = () => {
+  if (!currentStrategyId) return;
   ensureState();
-  stepStates[currentStep].players.push({x:100,y:100});
+  stepStates[currentStep].players.push({ x: 100, y: 100 });
   renderStep();
   saveStep();
 };
 
-document.querySelectorAll("[data-type]").forEach(b=>{
-  b.onclick=()=>{
+document.querySelectorAll("[data-type]").forEach(btn => {
+  btn.onclick = () => {
+    if (!currentStrategyId) return;
     ensureState();
-    const t=b.dataset.type;
-    if(t==="bomb") stepStates[currentStep].bomb={x:200,y:200};
-    else stepStates[currentStep].grenades.push({x:150,y:150,type:t});
+    const type = btn.dataset.type;
+    if (type === "bomb") {
+      stepStates[currentStep].bomb = { x: 200, y: 200 };
+    } else {
+      stepStates[currentStep].grenades.push({ x: 150, y: 150, type });
+    }
     renderStep();
     saveStep();
   };
 });
 
-function renderStep(){
-  mapContainer.querySelectorAll(".player,.grenade,.bomb").forEach(e=>e.remove());
-  const s=stepStates[currentStep];
-  if(!s) return;
+function renderStep() {
+  mapContainer.querySelectorAll(".player,.grenade,.bomb").forEach(e => e.remove());
+  const s = stepStates[currentStep];
+  if (!s) return;
 
-  s.players.forEach(p=>draw("player",p));
-  s.grenades.forEach(g=>draw(`grenade ${g.type}`,g));
-  if(s.bomb) draw("bomb",s.bomb);
+  s.players.forEach(p => draw("player", p));
+  s.grenades.forEach(g => draw(`grenade ${g.type}`, g));
+  if (s.bomb) draw("bomb", s.bomb);
 }
 
-function draw(cls,data){
-  const e=document.createElement("div");
-  e.className=cls;
-  e.style.left=data.x+"px";
-  e.style.top=data.y+"px";
+function draw(cls, data) {
+  const el = document.createElement("div");
+  el.className = cls;
+  el.style.left = data.x + "px";
+  el.style.top = data.y + "px";
 
-  e.oncontextmenu=ev=>{
-    ev.preventDefault();
-    Object.values(stepStates[currentStep]).forEach(arr=>{
-      if(Array.isArray(arr)){
-        const i=arr.indexOf(data);
-        if(i>-1) arr.splice(i,1);
+  el.oncontextmenu = e => {
+    e.preventDefault();
+    Object.values(stepStates[currentStep]).forEach(arr => {
+      if (Array.isArray(arr)) {
+        const i = arr.indexOf(data);
+        if (i > -1) arr.splice(i, 1);
       }
     });
     renderStep();
     saveStep();
   };
 
-  e.onmousedown=ev=>{
-    const ox=ev.offsetX, oy=ev.offsetY;
-    document.onmousemove=m=>{
-      data.x=m.clientX-mapContainer.offsetLeft-ox;
-      data.y=m.clientY-mapContainer.offsetTop-oy;
-      e.style.left=data.x+"px";
-      e.style.top=data.y+"px";
+  el.onmousedown = ev => {
+    const ox = ev.offsetX;
+    const oy = ev.offsetY;
+    document.onmousemove = m => {
+      data.x = m.clientX - mapContainer.offsetLeft - ox;
+      data.y = m.clientY - mapContainer.offsetTop - oy;
+      el.style.left = data.x + "px";
+      el.style.top = data.y + "px";
     };
-    document.onmouseup=()=>{
-      document.onmousemove=null;
-      document.onmouseup=null;
+    document.onmouseup = () => {
+      document.onmousemove = null;
+      document.onmouseup = null;
       saveStep();
     };
   };
 
-  mapContainer.appendChild(e);
+  mapContainer.appendChild(el);
 }
 
-async function saveStep(){
-  if(!currentStrategyId) return;
-  await setDoc(doc(db,"strategies",currentStrategyId,"steps",String(currentStep)),{
-    stepNumber:currentStep,
-    state:stepStates[currentStep]
-  });
+async function saveStep() {
+  if (!currentStrategyId) return;
+  await setDoc(
+    doc(db, "strategies", currentStrategyId, "steps", String(currentStep)),
+    { stepNumber: currentStep, state: stepStates[currentStep] }
+  );
 }
 
-async function loadStep(){
-  const snap=await getDoc(doc(db,"strategies",currentStrategyId,"steps",String(currentStep)));
-  stepStates[currentStep]=snap.exists()?snap.data().state:{players:[],grenades:[],bomb:null};
+async function loadStep() {
+  const snap = await getDoc(
+    doc(db, "strategies", currentStrategyId, "steps", String(currentStep))
+  );
+  stepStates[currentStep] = snap.exists()
+    ? snap.data().state
+    : { players: [], grenades: [], bomb: null };
   renderStep();
 }
