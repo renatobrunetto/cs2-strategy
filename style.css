@@ -279,7 +279,7 @@ main {
   display: block;
   width: 100%;
   height: auto;
-  pointer-events: none;
+  user-select: none;
 }
 
 
@@ -291,6 +291,7 @@ main {
 .bomb {
   position: absolute;
   cursor: grab;
+  pointer-events: auto;
 }
 
 .player {
