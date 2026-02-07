@@ -55,39 +55,39 @@
   </aside>
 
   <!-- EDITOR -->
-  <section id="editor">
-
-    <!-- EMPTY STATE -->
+   <section id="editor">
+  
     <div id="editor-empty" class="empty-editor">
       <h3>Nenhuma estratégia selecionada</h3>
       <p>Selecione ou crie uma estratégia para começar</p>
     </div>
-
-    <!-- TOOLS -->
-    <div id="tools">
-      <button id="addPlayerBtn">Player</button>
-
-      <div id="grenade-tools">
-        <button data-type="smoke">Smoke</button>
-        <button data-type="flash">Flash</button>
-        <button data-type="molotov">Molotov</button>
-        <button data-type="he">HE</button>
+  
+    <div id="editor-content" style="display:none">
+  
+      <div id="tools">
+        <button id="addPlayerBtn">Player</button>
+  
+        <div id="grenade-tools">
+          <button data-type="smoke">Smoke</button>
+          <button data-type="flash">Flash</button>
+          <button data-type="molotov">Molotov</button>
+          <button data-type="he">HE</button>
+        </div>
+  
+        <button id="addBombBtn">Bomba</button>
       </div>
-
-      <button id="addBombBtn">Bomba</button>
+  
+      <div id="map-container">
+        <img src="assets/dust2.png" id="map" />
+      </div>
+  
+      <div id="steps">
+        <strong>Passos:</strong>
+        <div id="stepButtons"></div>
+      </div>
+  
     </div>
-
-    <!-- MAPA -->
-    <div id="map-container">
-      <img src="assets/dust2.png" id="map" />
-    </div>
-
-    <!-- PASSOS -->
-    <div id="steps">
-      <strong>Passos:</strong>
-      <div id="stepButtons"></div>
-    </div>
-
+  
   </section>
 
 </main>
