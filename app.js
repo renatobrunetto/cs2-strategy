@@ -6,7 +6,8 @@ import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
@@ -42,14 +43,21 @@ const provider = new GoogleAuthProvider();
 let currentUserId = null;
 let currentStrategyId = null;
 let currentStep = 1;
-
 const stepStates = {};
+
+// SNAP CONFIG
+const SNAP_SIZE = 10;
+const SNAP_THRESHOLD = 6;
 
 // =======================
 // 🔹 DOM
 // =======================
+const loginView = document.getElementById("login-view");
+const appView = document.getElementById("app-view");
+
 const loginBtn = document.getElementById("loginBtn");
-const status = document.getElementById("status");
+const logoutBtn = document.getElementById("logoutBtn");
+const userNameEl = document.getElementById("userName");
 
 const newStrategyInput = document.getElementById("newStrategyName");
 const createStrategyBtn = document.getElementById("createStrategyBtn");
@@ -58,59 +66,51 @@ const myPrivateList = document.getElementById("myPrivateStrategyList");
 const myPublicList = document.getElementById("myPublicStrategyList");
 const publicList = document.getElementById("publicStrategyList");
 
+const editorEmpty = document.getElementById("editor-empty");
+const editorContent = document.getElementById("editor-content");
+
 const addPlayerBtn = document.getElementById("addPlayerBtn");
 const addBombBtn = document.getElementById("addBombBtn");
 
 const mapContainer = document.getElementById("map-container");
 
-const editorEmpty = document.getElementById("editor-empty");
-const editorContent = document.getElementById("editor-content");
-
 // =======================
 // 🔹 AUTH
 // =======================
-const loginView = document.getElementById("login-view");
-const appView = document.getElementById("app-view");
-const userNameEl = document.getElementById("userName");
-const logoutBtn = document.getElementById("logoutBtn");
-
-// LOGIN
 loginBtn.onclick = async () => {
   showLoader();
   await signInWithPopup(auth, provider);
   hideLoader();
 };
 
-// AUTH STATE
+logoutBtn.onclick = async () => {
+  showLoader();
+  await signOut(auth);
+  hideLoader();
+};
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     loginView.style.display = "flex";
     appView.style.display = "none";
     hideEditor();
-    return;    
+    return;
   }
 
-  // LOGADO
   currentUserId = user.uid;
   userNameEl.textContent = user.displayName;
 
   loginView.style.display = "none";
   appView.style.display = "block";
 
+  hideEditor();
   showLoader();
   await loadStrategies();
   hideLoader();
 });
 
-// LOGOUT
-logoutBtn.onclick = async () => {
-  showLoader();
-  await auth.signOut();
-  hideLoader();
-};
-
 // =======================
-// 🔹 LOAD STRATEGIES
+// 🔹 STRATEGIES
 // =======================
 async function loadStrategies() {
   myPrivateList.innerHTML = "";
@@ -130,43 +130,26 @@ async function loadStrategies() {
   const mySnap = await getDocs(myQuery);
   const pubSnap = await getDocs(publicQuery);
 
-  mySnap.forEach(docSnap => {
-    renderStrategy(docSnap, true);
-  });
-
+  mySnap.forEach(docSnap => renderStrategy(docSnap, true));
   pubSnap.forEach(docSnap => {
     if (docSnap.data().ownerId !== currentUserId) {
       renderStrategy(docSnap, false);
     }
   });
 
-  // 🔹 EMPTY STATES (APÓS renderizar)
   if (!myPrivateList.children.length) {
-    myPrivateList.innerHTML = `
-      <div class="empty-state">
-        Você ainda não criou estratégias privadas
-      </div>`;
+    myPrivateList.innerHTML = `<div class="empty-state">Sem estratégias privadas</div>`;
   }
 
   if (!myPublicList.children.length) {
-    myPublicList.innerHTML = `
-      <div class="empty-state">
-        Nenhuma estratégia pública sua ainda
-      </div>`;
+    myPublicList.innerHTML = `<div class="empty-state">Sem estratégias públicas suas</div>`;
   }
 
   if (!publicList.children.length) {
-    publicList.innerHTML = `
-      <div class="empty-state">
-        Nenhuma estratégia pública disponível
-      </div>`;
+    publicList.innerHTML = `<div class="empty-state">Nenhuma estratégia pública</div>`;
   }
 }
 
-
-// =======================
-// 🔹 RENDER STRATEGY CARD
-// =======================
 function renderStrategy(docSnap, isMine) {
   const data = docSnap.data();
 
@@ -176,95 +159,59 @@ function renderStrategy(docSnap, isMine) {
 
   const info = document.createElement("div");
   info.className = "strategy-info";
-
-  const icon = document.createElement("span");
-  icon.className = "strategy-icon";
-  icon.textContent = data.isPublic ? "👁️" : "🔒";
-
-  const name = document.createElement("span");
-  name.className = "strategy-name";
-  name.textContent = data.name;
-
-  info.appendChild(icon);
-  info.appendChild(name);
+  info.textContent = data.name;
 
   const actions = document.createElement("div");
   actions.className = "strategy-actions";
 
-  // Toggle public/private
   if (isMine) {
     const toggleBtn = document.createElement("button");
     toggleBtn.textContent = "🔁";
-    toggleBtn.title = "Alterar visibilidade";
-
     toggleBtn.onclick = async (e) => {
       e.stopPropagation();
-      await updateDoc(
-        doc(db, "strategies", docSnap.id),
-        { isPublic: !data.isPublic }
-      );
+      await updateDoc(doc(db, "strategies", docSnap.id), {
+        isPublic: !data.isPublic
+      });
       loadStrategies();
     };
 
-    actions.appendChild(toggleBtn);
-
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
-    deleteBtn.title = "Excluir estratégia";
-
     deleteBtn.onclick = async (e) => {
       e.stopPropagation();
+      if (!confirm("Excluir estratégia?")) return;
+
+      await setDoc(doc(db, "strategies", docSnap.id), {}, { merge: false });
       if (currentStrategyId === docSnap.id) {
         currentStrategyId = null;
         hideEditor();
       }
-      if (!confirm("Excluir esta estratégia?")) return;
-
-      await setDoc(
-        doc(db, "strategies", docSnap.id),
-        {},
-        { merge: false }
-      );
-
-      if (currentStrategyId === docSnap.id) {
-        currentStrategyId = null;
-        mapContainer.querySelectorAll(".player, .grenade, .bomb")
-          .forEach(el => el.remove());
-      }
-
       loadStrategies();
     };
 
-    actions.appendChild(deleteBtn);
+    actions.append(toggleBtn, deleteBtn);
   }
 
-  card.appendChild(info);
-  card.appendChild(actions);
+  card.append(info, actions);
 
   card.onclick = async () => {
     currentStrategyId = docSnap.id;
     currentStep = 1;
-  
-    // 🔥 RESET TOTAL DE ESTADO
+
     Object.keys(stepStates).forEach(k => delete stepStates[k]);
-  
-    // 🔥 UI
-    showEditor();
-  
+
     document.querySelectorAll(".strategy-card")
       .forEach(c => c.classList.remove("active"));
     card.classList.add("active");
-  
-    // 🔥 PASSOS PRIMEIRO
+
+    showEditor();
     loadSteps();
     highlightActiveStep();
-  
-    // 🔥 AGORA CARREGA O STEP
+
     showLoader();
     await loadStepFromDB(1);
     hideLoader();
   };
-
 
   if (isMine) {
     (data.isPublic ? myPublicList : myPrivateList).appendChild(card);
@@ -273,9 +220,6 @@ function renderStrategy(docSnap, isMine) {
   }
 }
 
-// =======================
-// 🔹 CREATE STRATEGY
-// =======================
 createStrategyBtn.onclick = async () => {
   const name = newStrategyInput.value.trim();
   if (!name) return;
@@ -288,24 +232,27 @@ createStrategyBtn.onclick = async () => {
     isPublic: false,
     createdAt: new Date()
   });
-
   hideLoader();
+
   newStrategyInput.value = "";
   loadStrategies();
 };
 
 // =======================
-// 🔹 STEP STATE
+// 🔹 EDITOR VISIBILITY
 // =======================
-function ensureStepState(step) {
-  if (!stepStates[step]) stepStates[step] = {};
-  stepStates[step].players ||= [];
-  stepStates[step].grenades ||= [];
-  stepStates[step].bomb ||= null;
+function showEditor() {
+  editorEmpty.style.display = "none";
+  editorContent.style.display = "block";
+}
+
+function hideEditor() {
+  editorContent.style.display = "none";
+  editorEmpty.style.display = "flex";
 }
 
 // =======================
-// 🔹 STEPS UI
+// 🔹 STEPS
 // =======================
 function loadSteps() {
   const container = document.getElementById("stepButtons");
@@ -329,15 +276,22 @@ function loadSteps() {
 function highlightActiveStep() {
   document.querySelectorAll("#stepButtons button")
     .forEach(btn => {
-      btn.classList.toggle(
-        "active",
-        Number(btn.textContent) === currentStep
-      );
+      btn.classList.toggle("active", Number(btn.textContent) === currentStep);
     });
 }
 
 // =======================
-// 🔹 EDITOR ACTIONS
+// 🔹 STEP STATE
+// =======================
+function ensureStepState(step) {
+  if (!stepStates[step]) stepStates[step] = {};
+  stepStates[step].players ||= [];
+  stepStates[step].grenades ||= [];
+  stepStates[step].bomb ||= null;
+}
+
+// =======================
+// 🔹 TOOLS
 // =======================
 addPlayerBtn.onclick = async () => {
   if (!currentStrategyId) return;
@@ -394,17 +348,13 @@ function renderStep() {
   const state = stepStates[currentStep];
   if (!state) return;
 
-  // =======================
-  // PLAYERS
-  // =======================
   state.players.forEach(player => {
     const el = document.createElement("div");
     el.className = "player";
     el.style.left = `${player.x}px`;
     el.style.top = `${player.y}px`;
 
-    // 🔥 REMOVER COM BOTÃO DIREITO
-    el.addEventListener("contextmenu", async (e) => {
+    el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.players = state.players.filter(p => p.id !== player.id);
       renderStep();
@@ -415,17 +365,13 @@ function renderStep() {
     mapContainer.appendChild(el);
   });
 
-  // =======================
-  // GRENADES
-  // =======================
   state.grenades.forEach(grenade => {
     const el = document.createElement("div");
     el.className = `grenade ${grenade.type}`;
     el.style.left = `${grenade.x}px`;
     el.style.top = `${grenade.y}px`;
 
-    // 🔥 REMOVER COM BOTÃO DIREITO
-    el.addEventListener("contextmenu", async (e) => {
+    el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.grenades = state.grenades.filter(g => g.id !== grenade.id);
       renderStep();
@@ -436,24 +382,19 @@ function renderStep() {
     mapContainer.appendChild(el);
   });
 
-  // =======================
-  // BOMB
-  // =======================
   if (state.bomb) {
     const el = document.createElement("div");
     el.className = state.bomb.planted ? "bomb planted" : "bomb";
     el.style.left = `${state.bomb.x}px`;
     el.style.top = `${state.bomb.y}px`;
 
-    // 🔥 PLANTAR / DESPLANTAR (DUPLO CLIQUE)
     el.addEventListener("dblclick", async () => {
       state.bomb.planted = !state.bomb.planted;
       renderStep();
       await saveCurrentStep();
     });
 
-    // 🔥 REMOVER COM BOTÃO DIREITO
-    el.addEventListener("contextmenu", async (e) => {
+    el.addEventListener("contextmenu", async e => {
       e.preventDefault();
       state.bomb = null;
       renderStep();
@@ -465,9 +406,8 @@ function renderStep() {
   }
 }
 
-
 // =======================
-// 🔹 DRAG
+// 🔹 DRAG (SNAP + LIMITS)
 // =======================
 function makeDraggable(el, data) {
   let dragging = false;
@@ -478,21 +418,43 @@ function makeDraggable(el, data) {
     dragging = true;
     ox = e.offsetX;
     oy = e.offsetY;
+    el.style.cursor = "grabbing";
   });
 
   document.addEventListener("mousemove", e => {
     if (!dragging) return;
+
     const rect = mapContainer.getBoundingClientRect();
-    data.x = e.clientX - rect.left - ox;
-    data.y = e.clientY - rect.top - oy;
-    el.style.left = `${data.x}px`;
-    el.style.top = `${data.y}px`;
+
+    let x = e.clientX - rect.left - ox;
+    let y = e.clientY - rect.top - oy;
+
+    const maxX = rect.width - el.offsetWidth;
+    const maxY = rect.height - el.offsetHeight;
+
+    x = Math.max(0, Math.min(x, maxX));
+    y = Math.max(0, Math.min(y, maxY));
+
+    x = Math.round(x / SNAP_SIZE) * SNAP_SIZE;
+    y = Math.round(y / SNAP_SIZE) * SNAP_SIZE;
+
+    const centerX = (rect.width - el.offsetWidth) / 2;
+    const centerY = (rect.height - el.offsetHeight) / 2;
+
+    if (Math.abs(x - centerX) < SNAP_THRESHOLD) x = centerX;
+    if (Math.abs(y - centerY) < SNAP_THRESHOLD) y = centerY;
+
+    data.x = x;
+    data.y = y;
+
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
   });
 
   document.addEventListener("mouseup", async () => {
     if (!dragging) return;
     dragging = false;
-    
+    el.style.cursor = "grab";
     await saveCurrentStep();
   });
 }
@@ -518,20 +480,9 @@ async function loadStepFromDB(step) {
   renderStep();
 }
 
-function showToast(message, type = "info") {
-  const container = document.getElementById("toast-container");
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
+// =======================
+// 🔹 UI HELPERS
+// =======================
 function showLoader() {
   document.getElementById("loader").classList.remove("hidden");
 }
@@ -539,20 +490,3 @@ function showLoader() {
 function hideLoader() {
   document.getElementById("loader").classList.add("hidden");
 }
-
-function showEditor() {
-  if (!editorEmpty || !editorContent) {
-    console.error("Editor containers não encontrados no DOM");
-    return;
-  }
-  editorEmpty.style.display = "none";
-  editorContent.style.display = "block";
-}
-
-function hideEditor() {
-  if (!editorEmpty || !editorContent) return;
-  editorContent.style.display = "none";
-  editorEmpty.style.display = "flex";
-}
-
-
