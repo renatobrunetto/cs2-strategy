@@ -288,6 +288,23 @@ main {
   pointer-events: none;
 }
 
+#map {
+  position: relative;
+  z-index: 1;   
+}
+
+.player {
+  z-index: 30;
+}
+
+.grenade {
+  z-index: 40;
+}
+
+.bomb {
+  z-index: 50;
+}
+
 /* =========================
    STEPS (PRODUCTIVITY STYLE)
 ========================= */
@@ -352,7 +369,8 @@ main {
   height: 22px;
   border-radius: 50%;
   border: 1px solid #555;
-  z-index: 5;
+  background-color: #9e9e9e; /* fallback */
+  z-index: 20; /* 🔥 acima do mapa */
 }
 
 /* =========================
