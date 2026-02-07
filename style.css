@@ -90,7 +90,7 @@ button.primary {
    HEADER
 ========================= */
 .app-header {
-  height: 64px;
+  height: 90px;
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -106,7 +106,7 @@ button.primary {
 }
 
 .header-logo {
-  height: 36px;
+  height: 80px;
 }
 
 .logo-text {
