@@ -464,3 +464,138 @@ main {
 #map-container * {
   user-select: none;
 }
+
+/* =========================
+   GRENADE MODAL
+========================= */
+#grenade-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#grenade-modal.open {
+  display: flex;
+}
+
+.grenade-modal-box {
+  width: 420px;
+  background: var(--bg-panel);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grenade-modal-box h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.grenade-modal-box label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.grenade-modal-box input {
+  padding: 8px;
+  background: var(--bg-item);
+  border: none;
+  color: white;
+  border-radius: 4px;
+}
+
+.grenade-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.grenade-modal-actions .danger {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.grenade-modal-actions .primary {
+  background: var(--primary);
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+/* =========================
+   GRENADE MODAL
+========================= */
+#grenade-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#grenade-modal.open {
+  display: flex;
+}
+
+.grenade-modal-box {
+  width: 420px;
+  background: var(--bg-panel);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grenade-modal-box h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.grenade-modal-box label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.grenade-modal-box input {
+  padding: 8px;
+  background: var(--bg-item);
+  border: none;
+  color: white;
+  border-radius: 4px;
+}
+
+.grenade-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.grenade-modal-actions .danger {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.grenade-modal-actions .primary {
+  background: var(--primary);
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
