@@ -1,50 +1,33 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>CS2 Strategy Builder</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
-</head>
 <body>
 
 <!-- LOGIN -->
 <div id="login-view" class="centered">
   <div class="login-card">
-
-    <img
-      src="assets/logo-sdk-cs2.png"
-      alt="SDK CS2 Strategy"
-      class="login-logo"
-    />
-
+    <img src="assets/logo-sdk-cs2.png" class="login-logo" />
     <h1>CS2 Strategy Builder</h1>
     <p>Crie e edite estratégias</p>
-
-    <button id="loginBtn" class="primary">
-      Entrar com Google
-    </button>
-
+    <button id="loginBtn" class="primary">Entrar com Google</button>
   </div>
 </div>
 
 <!-- APP -->
-<section id="app-view" style="display:none">
+<div id="app-view" style="display:none">
 
-<header class="app-header">
-  <div class="header-left">
-  <img
-    src="assets/logo-sdk-cs2-header.png"
-    alt="SDK CS2 Strategy"
-    class="header-logo"
-  />
-  <span class="logo-text">CS2 Strategy Builder</span>
-</div>
-  <div class="user-menu">
-    <span id="userName"></span>
-    <button id="logoutBtn">Sair</button>
-  </div>
-</header>
+  <header class="app-header">
+    <div class="header-left">
+      <img src="assets/logo-sdk-cs2-small.png" class="header-logo" />
+      <span class="logo-text">CS2 Strategy Builder</span>
+    </div>
+
+    <div class="user-menu">
+      <span id="userName"></span>
+      <button id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <main>
+
+
 
 <main>
 
@@ -98,12 +81,11 @@
   </div>
 </section>
 
-</main>
-</section>
+  </main>
 
-<div id="loader" class="hidden">
-  <div class="spinner"></div>
 </div>
+
+<div id="loader" class="hidden"></div>
 
 <script type="module" src="app.js"></script>
 </body>
