@@ -68,6 +68,9 @@ const addPlayerBtn = document.getElementById("addPlayerBtn");
 const mapContainer = document.getElementById("map-container");
 const stepButtons = document.getElementById("stepButtons");
 
+const strategyNotesInput = document.getElementById("strategyNotes");
+
+
 // =======================
 // 🔹 AUTH
 // =======================
@@ -176,6 +179,10 @@ function renderStrategy(docSnap, container, isMine) {
     editorEmpty.style.display = "none";
     editorContent.style.display = "block";
 
+    // 🔹 carregar notas da estratégia
+    strategyNotesInput.value = data.notes || "";
+
+    
     loadSteps();
     await loadStep();
     highlightActiveStep();
@@ -356,3 +363,16 @@ function highlightActiveStep() {
     btn.classList.toggle("active", Number(btn.textContent) === currentStep);
   });
 }
+// =======================
+// 🔹 STRATEGY NOTES (AUTOSAVE)
+// =======================
+strategyNotesInput.oninput = async () => {
+  if (!currentStrategyId) return;
+
+  await updateDoc(
+    doc(db, "strategies", currentStrategyId),
+    {
+      notes: strategyNotesInput.value
+    }
+  );
+};
